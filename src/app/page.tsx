@@ -1,5 +1,6 @@
 
-import Link from "next/link";
+import CreateRoom from "./components/CreateRoom";
+import JoinRoom from "./components/JoinRoom";
 
 export default function Home() {
   return (
@@ -9,32 +10,8 @@ export default function Home() {
         Estimate story points collaboratively with your team.
       </p>
       <div className="flex flex-col gap-4 justify-center">
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            placeholder="Enter User Name"
-            className="input input-bordered w-64"
-            // value={roomId}
-            // onChange={(e) => setRoomId(e.target.value)}
-          />
-          <Link href="/room">
-            <button className="btn btn-primary px-6">
-              Create Room
-            </button>
-          </Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            placeholder="Existing Room ID"
-            className="input input-bordered w-64"
-            // value={roomId}
-            // onChange={(e) => setRoomId(e.target.value)}
-          />
-          <button className="btn btn-secondary px-6">
-            Join Room
-          </button>
-        </div>
+        <CreateRoom />
+        <JoinRoom />
       </div>
     </div>
   );

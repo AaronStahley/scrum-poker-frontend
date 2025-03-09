@@ -1,7 +1,6 @@
 import React from 'react'
 
 interface Player {
-  id: string;
   name: string;
   selection: number | string | null;
 }
@@ -23,7 +22,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ players, revealVotes }) => {
         </thead>
         <tbody>
           {players.map((player) => (
-            <tr key={player.id} className="hover">
+            <tr key={player.name} className="hover">
               <td className="p-3">{player.name}</td>
               <td className="p-3">
                 {revealVotes ? (
