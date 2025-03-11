@@ -1,8 +1,6 @@
-import PlayingCardSelector from '../../components/PlayingCardSelector'
-import PlayerTable from '../../components/PlayerTable'
 import { db } from "@/lib/firebase";
 import { getDoc, doc } from "firebase/firestore";
-import CreateNewPlayer from '@/app/components/CreateNewPlayer';
+import RoomClient from '@/app/components/RoomClient';
 
 interface Room {
   params: { 
@@ -31,14 +29,8 @@ const RoomPage = async ({ params }: Room) => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-base-200">
-      {/* <CreateNewPlayer db={db} roomId={roomId} players={roomData.players}/> */}
       <h1 className="text-4xl font-bold mb-6">Select Your Story Point</h1>
-      <PlayingCardSelector />
-      <div className='flex flex-wrap gap-4 justify-center p-6'>
-        <button className="text-base btn btn-primary">Submit Vote</button>
-        <button className="text-base btn btn-secondary">Reveal Votes</button>
-      </div>
-      <PlayerTable players={roomData.players} revealVotes={false} />
+      <RoomClient roomId={roomId} />
     </div>
   )
 }

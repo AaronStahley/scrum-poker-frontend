@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect} from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -20,38 +20,37 @@ const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => 
     }
   };
 
-  if (!isOpen) return null; // Don't render if the modal is not open
+  useEffect(() => {
+    // Close the modal when the isOpen prop changes and it's set to false
+    if (!isOpen) {
+      const modalElement = document.getElementById("my_modal_5") as HTMLDialogElement;
+      if (modalElement) {
+        modalElement.close();
+      }
+    }
+  }, [isOpen]); // Close the modal whenever isOpen changes to false
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-        <h2 className="text-lg font-semibold mb-4">Enter Player Name</h2>
-        <form onSubmit={handleSubmit}>
+    <dialog id="my_modal_5" className="modal modal-bottom sm:modal-middle" open={isOpen}>
+        <div className="modal-box">
+          <h2 className="text-xl font-bold mb-4">New Player's Name</h2>
           <input
             type="text"
-            className="w-full p-2 border border-gray-300 rounded mb-4"
-            placeholder="Enter name"
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
+            className="input input-bordered w-full mb-4"
+            placeholder="Enter your name"
           />
-          <div className="flex justify-between">
-            <button
-              type="button"
-              className="bg-gray-500 text-white px-4 py-2 rounded"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
+          <div className="modal-action">
+            <button className="btn" onClick={handleSubmit}>
               Submit
             </button>
+            <button className="btn btn-ghost" onClick={onClose}>
+              Close
+            </button>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+    </dialog>
   );
 };
 

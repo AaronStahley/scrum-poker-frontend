@@ -13,22 +13,17 @@ interface Player {
 }
 
 interface RoomProps {
+    create: boolean; 
     db: any;
     roomId: string;
     players: Player[];
   }
 
-const CreateNewPlayer: React.FC<RoomProps> = ({ db, roomId, players }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const CreateNewPlayer: React.FC<RoomProps> = ({ create, db, roomId, players }) => {
+  const [isModalOpen, setIsModalOpen] = useState(create);
   const [playerName, setPlayerName] = useState("");
-  const openModal = () => setIsModalOpen(true);
+  // const openModal = () => setIsModalOpen(create);
   const closeModal = () => setIsModalOpen(false);
-
-  const checkIfPlayerExists = (players: Player[], playerId: string) => {
-    return players.some((player: Player) => player.id === playerId);
-  }
-
-  let playerExists = checkIfPlayerExists(players, localStorage.getItem("playerId") || "");
 
   const createNewPlayer = (name: string) => {
     let newPlayer = {id: crypto.randomUUID(), name: name, selection: null};
@@ -36,8 +31,8 @@ const CreateNewPlayer: React.FC<RoomProps> = ({ db, roomId, players }) => {
     return newPlayer;
   }
 
-  const handleNewPlayerSubmit = async (name: string) => {
-    let newPlayer = createNewPlayer(name);
+  const handleNewPlayerSubmit = async (playerName: string) => {
+    let newPlayer = createNewPlayer(playerName);
     setPlayerName(newPlayer.name);
 
     const roomRef = doc(db, "rooms", roomId);
@@ -50,10 +45,6 @@ const CreateNewPlayer: React.FC<RoomProps> = ({ db, roomId, players }) => {
       console.error("Error adding player to the room:", error);
     }
   };
-
-  if(!playerExists) {
-    openModal()
-  }
 
   return (
     <>

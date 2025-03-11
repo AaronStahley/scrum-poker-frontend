@@ -1,6 +1,7 @@
 import React from 'react'
 
 interface Player {
+  id: string
   name: string;
   selection: number | string | null;
 }
