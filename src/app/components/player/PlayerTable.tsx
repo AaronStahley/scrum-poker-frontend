@@ -1,10 +1,5 @@
 import React from 'react'
-
-interface Player {
-  id: string
-  name: string;
-  selection: number | string | null;
-}
+import { Player } from '../../../types/player';
 
 interface PlayerTableProps {
   players: Player[];
@@ -27,7 +22,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ players, revealVotes }) => {
               <td className="p-3">{player.name}</td>
               <td className="p-3">
                 {revealVotes ? (
-                  <span className="font-bold">{player.selection ?? "❓"}</span>
+                  <span className="font-bold">{player.selection ?? "?"}</span>
                 ) : (
                   <span className="text-gray-500">🔒 Hidden</span>
                 )}

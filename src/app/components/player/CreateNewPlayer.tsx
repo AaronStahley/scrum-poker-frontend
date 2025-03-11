@@ -4,20 +4,14 @@ import React from 'react'
 import { useState } from "react";
 import { updateDoc, doc, arrayUnion } from "firebase/firestore";
 import NewPlayerModal from './NewPlayerModal';
-
-
-interface Player {
-    id: string;
-    name: string;
-    selection: number | string | null;
-}
+import { Player } from '../../../types/player';
 
 interface RoomProps {
     create: boolean; 
     db: any;
     roomId: string;
     players: Player[];
-  }
+}
 
 const CreateNewPlayer: React.FC<RoomProps> = ({ create, db, roomId, players }) => {
   const [isModalOpen, setIsModalOpen] = useState(create);

@@ -27,11 +27,11 @@ const JoinRoom = () => {
       <input
         type="text"
         placeholder="Existing Room ID"
-        className="input input-bordered w-64"
+        className="input input-bordered min-w-64"
         value={roomId}
         onChange={(e) => setRoomId(e.target.value)}
       />
-      <button className="btn btn-secondary px-6" onClick={joinRoom}>
+      <button className="btn btn-secondary min-w-35" onClick={joinRoom}>
         Join Room
       </button>
     </div>

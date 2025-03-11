@@ -41,10 +41,10 @@ const CreateRoom = () => {
       <input
         type="text"
         placeholder="Enter User Name"
-        className="input input-bordered w-64"
+        className="input input-bordered min-w-64"
         onChange={(e) => setPlayerName(e)}
       />
-        <button className="btn btn-primary px-6" onClick={createRoom}>
+        <button className="btn btn-primary min-w-35" onClick={createRoom}>
           Create Room
         </button>
     </div>

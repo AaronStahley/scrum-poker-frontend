@@ -1,19 +1,7 @@
 import { db } from "@/lib/firebase";
 import { getDoc, doc } from "firebase/firestore";
-import RoomClient from '@/app/components/RoomClient';
-
-interface Room {
-  params: { 
-    roomId: string;
-    players: Player[];
-  };
-}
-
-interface Player {
-  id: string;
-  name: string;
-  selection: number | string | null;
-}
+import RoomClient from '@/app/components/room/RoomClient';
+import { Room } from "@/types/room";
 
 const RoomPage = async ({ params }: Room) => {
   const { roomId } = await params;
@@ -28,8 +16,8 @@ const RoomPage = async ({ params }: Room) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-base-200">
-      <h1 className="text-4xl font-bold mb-6">Select Your Story Point</h1>
+    <div className="flex-1 flex flex-col items-center justify-center bg-base-200">
+    <h1 className="text-4xl font-bold mb-6">Select Your Story Point</h1>
       <RoomClient roomId={roomId} />
     </div>
   )

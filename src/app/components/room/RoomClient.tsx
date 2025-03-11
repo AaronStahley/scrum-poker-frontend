@@ -3,44 +3,35 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { doc, updateDoc, onSnapshot } from "firebase/firestore";
-import PlayerTable from "./PlayerTable"
-import PlayingCardSelector from "./PlayingCardSelector";
-import CreateNewPlayer from "./CreateNewPlayer";
-
-interface Player {
-  id: string;
-  name: string;
-  selection: number | string | null;
-}
+import PlayerTable from "../player/PlayerTable"
+import PlayingCardSelector from "../card/PlayingCardSelector";
+import CreateNewPlayer from "../player/CreateNewPlayer";
+import { Player } from "@/types/player";
 
 const RoomClient = ({ roomId }: { roomId: string }) => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [revealVotes, setRevealVotes] = useState(false);
-  const [playerId, setPlayerId] = useState<string | null>(null);
   const [playerExists, setPlayerExists] = useState(false);
-  const [roomStatus, setRoomStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    let storedPlayerId = localStorage.getItem("playerId");
-    setPlayerId(storedPlayerId);
-
+    const storedPlayerId = localStorage.getItem("playerId");
     const roomRef = doc(db, "rooms", roomId);
 
     const unsubscribe = onSnapshot(roomRef, (docSnap) => {
       if (docSnap.exists()) {
-        let roomStatus = docSnap.data().status;
+        const roomStatus = docSnap.data().status;
+        const players = docSnap.data().players;
+        const existingPlayer = players.some((player: Player) => player.id === storedPlayerId);
+
+        setPlayerExists(existingPlayer);
+        setPlayers(players);
+
         if (roomStatus === "revealed") {
           setRevealVotes(true);
         }else { 
           setRevealVotes(false);
         }
-        setRoomStatus(roomStatus);
-        let players = docSnap.data().players;
-        setPlayers(players);
-        const existingPlayer = players.some((player: Player) => player.id === storedPlayerId);
-        setPlayerExists(existingPlayer);
-      
       } else {
         setPlayers([]);
       }
@@ -52,8 +43,6 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
 
   const updatePlayerSelection = async (playerId: string, selection: string | number) => {
     const roomRef = doc(db, "rooms", roomId);
-
-    console.log("Updating player selection", playerId, selection);
 
     await updateDoc(roomRef, {
       players: players.map((player) =>
@@ -83,7 +72,6 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   }
 
   if (loading) return <p>Loading players...</p>;
-  // if (!playerExists && !loading) return <CreateNewPlayer create={playerExists} db={db} roomId={roomId} players={players}/>
 
   return (
     <div>
