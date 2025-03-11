@@ -13,8 +13,6 @@ const JoinRoom = () => {
     const roomRef = doc(db, "rooms", roomId);
     const roomSnap = await getDoc(roomRef);
 
-    if (!roomId.trim()) return;
-
     if (roomSnap.exists()) {
       router.push(`/room/${roomId}`);
     } else {
@@ -22,19 +20,36 @@ const JoinRoom = () => {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const form = e.target as HTMLFormElement;
+    if (form.checkValidity()) {
+      joinRoom();
+    }
+  }
+
   return (
-    <div className="flex items-center gap-4">
-      <input
-        type="text"
-        placeholder="Existing Room ID"
-        className="input input-bordered min-w-64"
-        value={roomId}
-        onChange={(e) => setRoomId(e.target.value)}
-      />
-      <button className="btn btn-secondary min-w-35" onClick={joinRoom}>
-        Join Room
-      </button>
-    </div>
+  <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-4">
+    <input
+      type="text"
+      placeholder="Existing Room ID"
+      name="roomId"
+      className={`input input-bordered min-w-64`}
+      value={roomId}
+      onChange={(e) => setRoomId(e.target.value)}
+      required
+      minLength={20}
+      maxLength={20}
+      // pattern="^[a-zA-Z0-9]{20}$" //TODO: figure out how to use this with custom message
+    />
+    <button
+      type="submit"
+      className="btn btn-secondary min-w-30"
+    >
+      Join Room
+    </button>
+  </form>
   )
 }
 
