@@ -13,9 +13,13 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const [loading, setLoading] = useState(true);
   const [revealVotes, setRevealVotes] = useState(false);
   const [playerExists, setPlayerExists] = useState(false);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const roomRef = doc(db, "rooms", roomId);
 
   useEffect(() => {
     const storedPlayerId = localStorage.getItem("playerId");
+    setPlayerId(storedPlayerId);
+
     const roomRef = doc(db, "rooms", roomId);
 
     const unsubscribe = onSnapshot(roomRef, (docSnap) => {
@@ -42,7 +46,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   }, [roomId]);
 
   const updatePlayerSelection = async (playerId: string, selection: string | number) => {
-    const roomRef = doc(db, "rooms", roomId);
+    // const roomRef = doc(db, "rooms", roomId);
 
     await updateDoc(roomRef, {
       players: players.map((player) =>
@@ -52,8 +56,6 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   };
 
   const resetVotes = async () => {
-    const roomRef = doc(db, "rooms", roomId);
-
     await updateDoc(roomRef, {
         status: "waiting",
         players: players.map((player) => ({
@@ -64,12 +66,18 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   };
 
   const handlRevealVotes = async () => {
-    const roomRef = doc(db, "rooms", roomId);
-
     await updateDoc(roomRef, {
         status: "revealed",
     });
   }
+
+  const removePlayer = (name: string) => {
+    setPlayers((prevPlayers) => prevPlayers.filter((player) => player.name !== name));
+
+    updateDoc(roomRef, {
+      players: players.filter((player) => player.name !== name),
+    });
+  };
 
   if (loading) return <p>Loading players...</p>;
 
@@ -81,7 +89,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
       <button className="text-base btn btn-primary" onClick={handlRevealVotes}>Reveal Votes</button>
       <button className="text-base btn btn-secondary" onClick={resetVotes}>Reset Votes</button>
     </div>
-    <PlayerTable players={players} revealVotes={revealVotes} />
+    <PlayerTable currentPlayerId={playerId} players={players} revealVotes={revealVotes} removePlayer={removePlayer} />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect} from "react";
+import { useRouter } from "next/navigation";
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,25 +11,25 @@ interface ModalProps {
 
 const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [playerName, setPlayerName] = useState("");
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (playerName.trim()) {
-      onSubmit(playerName); // Call the onSubmit prop to handle the player name
-      setPlayerName(""); // Clear the input field
-      onClose(); // Close the modal
+      onSubmit(playerName);
+      setPlayerName("");
+      onClose();
     }
   };
 
   useEffect(() => {
-    // Close the modal when the isOpen prop changes and it's set to false
     if (!isOpen) {
       const modalElement = document.getElementById("my_modal_5") as HTMLDialogElement;
       if (modalElement) {
         modalElement.close();
       }
     }
-  }, [isOpen]); // Close the modal whenever isOpen changes to false
+  }, [isOpen]);
 
   return (
     <dialog id="my_modal_5" className="modal modal-bottom sm:modal-middle" open={isOpen}>
@@ -45,7 +46,13 @@ const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => 
             <button className="btn" onClick={handleSubmit}>
               Submit
             </button>
-            <button className="btn btn-ghost" onClick={onClose}>
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+              // onClose();
+              router.push('/');
+              }}
+            >
               Close
             </button>
           </div>
