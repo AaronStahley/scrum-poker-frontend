@@ -33,7 +33,7 @@ const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => 
   return (
     <dialog id="my_modal_5" className="modal modal-bottom sm:modal-middle" open={isOpen}>
         <div className="modal-box">
-          <h2 className="text-xl font-bold mb-4">New Player's Name</h2>
+          <h2 className="text-xl font-bold mb-4">New Players Name</h2>
           <input
             type="text"
             value={playerName}

@@ -8,7 +8,7 @@ const CreateRoom = () => {
   let playerName = "";
   const router = useRouter();
 
-  const setPlayerName = (e: any) => {
+  const setPlayerName = (e: React.ChangeEvent<HTMLInputElement>) => {
     playerName = e.target.value;
   }
 
