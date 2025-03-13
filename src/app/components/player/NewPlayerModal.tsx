@@ -39,7 +39,7 @@ const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => 
       <div className="modal-box">
         <div className="mb-4">
           <h2 className="text-xl font-bold">Welcome!</h2>
-          <p className="text-sm text-secondary mb-5">It looks like you're new here. Please enter your name to join the game.</p>
+          <p className="text-sm text-secondary mb-5">It looks like you are new here. Please enter your name to join the game.</p>
         </div>
         <div className="flex items-center gap-2">
           <input
