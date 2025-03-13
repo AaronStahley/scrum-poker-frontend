@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center bg-base-200 text-center">
       <h1 className="text-4xl font-bold mb-4 ">The Scrum Poker</h1>
-      <p className="text-lg text-gray-600 mb-10">
+      <p className="text-lg text-secondary mb-5">
         Estimate story points collaboratively with your team.
       </p>
       <div className="flex flex-col gap-4 justify-center">

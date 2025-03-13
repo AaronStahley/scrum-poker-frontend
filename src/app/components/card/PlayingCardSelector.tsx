@@ -17,7 +17,7 @@ const PlayingCardSelector = ({ onSelect }: {onSelect: (id: string, selection: nu
   };
 
   return (
-    <div className="flex flex-wrap gap-4 justify-center p-6">
+    <div className="flex flex-wrap gap-4 justify-center  p-6 sm:p-4">
         {storyPoints.map((point) => (
             <PlayingCard
             key={point}

@@ -29,7 +29,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ currentPlayerId, players, rev
                 {revealVotes ? (
                   <span className="font-bold">{player.selection ?? "?"}</span>
                 ) : (
-                  <span className="text-gray-500">🔒 Hidden</span>
+                  <span className="text-secondary">🔒 Hidden</span>
                 )}
               </td>
               <td className="p-1">
