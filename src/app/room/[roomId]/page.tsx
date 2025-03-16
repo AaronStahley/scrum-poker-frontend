@@ -1,4 +1,4 @@
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase/firebase";
 import { getDoc, doc } from "firebase/firestore";
 import RoomClient from '@/app/components/room/RoomClient';
 

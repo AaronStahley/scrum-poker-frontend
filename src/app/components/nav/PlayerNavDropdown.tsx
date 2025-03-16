@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from "next/link";
-import { auth } from "@/lib/firebase"; 
+import { auth } from "@/lib/firebase/firebase"; 
 import { signOut } from "firebase/auth";
 import { UserIcon, ArrowLeftStartOnRectangleIcon } from  "@heroicons/react/20/solid";
 

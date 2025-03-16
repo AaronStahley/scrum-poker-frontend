@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect} from "react";
-import { useRouter } from "next/navigation";
 import { QuestionMarkCircleIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 
@@ -14,7 +13,6 @@ interface ModalProps {
 const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [playerName, setPlayerName] = useState("");
   const [showHelp, setShowHelp] = useState(false);
-  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +37,9 @@ const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => 
       <div className="modal-box">
         <div className="mb-4">
           <h2 className="text-xl font-bold">Welcome!</h2>
-          <p className="text-sm text-secondary mb-5">It looks like you are new here. Please enter your name to join the game.</p>
+          <p className="text-sm text-secondary mb-5">It looks like you are new here. Please enter your name to create a temporary account or {" "}
+          <Link className="text-secondary underline" href="/login">Log In</Link>
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -71,7 +71,8 @@ const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => 
           <button
             className="btn btn-ghost"
             onClick={() => {
-              router.push('/');
+              // router.push('/');
+              onClose();
             }}
           >
             Exit

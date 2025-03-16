@@ -3,15 +3,15 @@
 import React from 'react'
 import Link from 'next/link'
 import { Bars3Icon } from '@heroicons/react/20/solid'
-import useAuthUser from "@/lib/auth";
+import { useAuth } from '@/app/contexts/auth'
 import PlayerNavDropdown from './PlayerNavDropdown'
 
 const TopNavBarRight = () => {
-  const { player, loading } = useAuthUser();
+  const { player, loading } = useAuth();
 
   if(loading) return null;
 
-  if(!player)  return (
+  if(!player || player.isAnonymous)  return (
     <div>
       <div className="hidden sm:flex gap-2">
         <Link href="/signup" className="btn bg-primary btn-ghost">Sign Up</Link>

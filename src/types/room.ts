@@ -1,9 +1,10 @@
 import { Player } from './player';
 
 export interface Room {
-    params: { 
-      roomId: string;
-      players: Player[];
-    };
-  }
+    createdAt: Date;
+    createdBy: string;
+    name: string;
+    status: string;
+    players: Player[];
+}
   

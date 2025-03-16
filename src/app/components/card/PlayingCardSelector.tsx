@@ -4,11 +4,9 @@ import PlayingCard from "./PlayingCard";
 
 const storyPoints = [0, 1, 2, 3, 5, 8, 13, 21, "?"];
 
-const PlayingCardSelector = ({ onSelect }: {onSelect: (id: string, selection: number | string) => void }) => {
+const PlayingCardSelector = ({ playerId, onSelect }: {playerId: string | undefined, onSelect: (id: string, selection: number | string) => void }) => {
   const [selectedValue, setSelectedValue] = useState<number | string | null>(null);
-  const playerId = localStorage.getItem("playerId");
   
-
   const handleSelect = (value: number | string) => {
     if (playerId) {
       setSelectedValue(value);

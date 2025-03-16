@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { firebaseErrorMessages } from "@/lib/firebase/firebaseErrorMessages";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -18,14 +19,15 @@ const LoginPage = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to login user";
+      setError(errorMessage);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold mb-4">Login</h1>
+    <div className="flex-1 flex flex-col items-center justify-center text-center">
+      <h1 className="text-4xl font-bold mb-5">Login</h1>
       {error && <p className="text-red-500">{error}</p>}
       <form onSubmit={handleLogin} className="flex flex-col gap-4 w-full max-w-md">
         <input 
@@ -46,7 +48,7 @@ const LoginPage = () => {
           required 
         />
 
-        <button type="submit" className="btn btn-primary w-full">Sign Up</button>
+        <button type="submit" className="btn btn-primary w-full">Log In</button>
       </form>
     </div>
   )

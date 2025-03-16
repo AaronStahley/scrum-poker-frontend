@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import TopNavBar from "./components/nav/TopNavBar";
+import AuthProviderWrapper from "../app/components/auth/AuthProviderWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,13 +25,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="business">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base-200`}
-      >
-        <TopNavBar />
-        <main className="container mx-auto px-4 py-4">{children}</main>
-      </body>
-    </html>
+      <html lang="en" data-theme="business">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base-200`}
+        >
+          <AuthProviderWrapper>
+            <TopNavBar />
+            <main className="container mx-auto px-4 py-4">{children}</main>
+          </AuthProviderWrapper>
+        </body>
+      </html>
   );
 }
