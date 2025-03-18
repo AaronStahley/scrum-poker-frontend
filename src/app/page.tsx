@@ -1,6 +1,6 @@
 
 import CreateRoom from "./components/room/CreateRoom";
-import JoinRoom from "./components/room/JoinRoom";
+import JoinRoom from "./components/room/JoinRoomForm";
 
 export default function HomePage() {
   return (

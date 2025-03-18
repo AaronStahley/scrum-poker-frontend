@@ -6,19 +6,17 @@ import { db } from "@/lib/firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { Room } from "../../../types/room";
 import { useAuth } from "@/app/contexts/auth";
-import CreateNewPlayer from "../player/CreateNewPlayer";
 import { User } from "firebase/auth";
 
 const CreateRoom = () => {
-  const [createNewPlayer, setCreteNewPlayer] = useState(false);
-  const [createNewRoom, setCreateNewRoom] = useState(false);
   const [roomName, setRoomName] = useState("");
-  const { player } = useAuth();
+  const { player, setShowModal } = useAuth();
   const router = useRouter();
 
   const createRoom = useCallback (async () => {
     if (!player) {
       console.error("No player found, cannot create room.");
+      setShowModal(true);
       return;
     }
 
@@ -47,37 +45,19 @@ const CreateRoom = () => {
     
     const form = e.target as HTMLFormElement;
     if (form.checkValidity()) {
-      if (!player) { 
-        setCreteNewPlayer(true);
-        console.log("No player found, opening modal to create new player.");
-        return;
-      }
-
-      setCreateNewRoom(true);
-    }
-  };
-
-  const handlePlayerCreated = (newPlayer: User | null) => {
-    if (newPlayer) {
-      console.log("New player created:", newPlayer);
-      setCreateNewRoom(true);
-    } else {
-      console.error("Failed to create new player.");
-    }
-
-    setCreteNewPlayer(false);
-  };
-
-  useEffect(() => {
-    if (player && createNewRoom) {
-      console.log("Creating new room for player: ", player.displayName);
       createRoom();
     }
-  }, [player, createNewRoom, roomName, createRoom]); 
+  };
+
+  // useEffect(() => {
+  //   if (player && createNewRoom) {
+  //     console.log("Creating new room for player: ", player.displayName);
+  //     createRoom();
+  //   }
+  // }, [player, createNewRoom, roomName, createRoom]); 
 
   return (
     <>
-      <CreateNewPlayer create={createNewPlayer} onPlayerCreated={handlePlayerCreated} />
       <form onSubmit={handleCreateNewRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
         <input
           type="text"

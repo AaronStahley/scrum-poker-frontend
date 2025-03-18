@@ -1,39 +1,37 @@
 "use client";
 
-import { useState, useEffect} from "react";
+import { useState} from "react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/20/solid";
+import { useAuth } from "@/app/contexts/auth";
 import Link from "next/link";
 
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (playerName: string) => void;
-}
-
-const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => {
+const NewPlayerModal = () => {
   const [playerName, setPlayerName] = useState("");
   const [showHelp, setShowHelp] = useState(false);
+  const { showModal, setShowModal, createNewAnonymousPlayer } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (playerName.trim()) {
-      onSubmit(playerName);
+      createNewAnonymousPlayer(playerName);
       setPlayerName("");
-      onClose();
+      setShowModal(false);
     }
   };
 
-  useEffect(() => {
-    if (!isOpen) {
-      const modalElement = document.getElementById("my_modal_5") as HTMLDialogElement;
-      if (modalElement) {
-        modalElement.close();
-      }
-    }
-  }, [isOpen]);
+  // useEffect(() => {
+  //   if (!isOpen) {
+  //     const modalElement = document.getElementById("my_modal_5") as HTMLDialogElement;
+  //     if (modalElement) {
+  //       modalElement.close();
+  //     }
+  //   }
+  // }, [isOpen]);
+
+  if(!showModal) return null;
 
   return (
-    <dialog id="my_modal_5" className="modal modal-middle" open={isOpen}>
+    <dialog id="my_modal_5" className="modal modal-middle" open={true}>
       <div className="modal-box">
         <div className="mb-4">
           <h2 className="text-xl font-bold">Welcome!</h2>
@@ -72,7 +70,7 @@ const NewPlayerModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit }) => 
             className="btn btn-ghost"
             onClick={() => {
               // router.push('/');
-              onClose();
+              setShowModal(false);
             }}
           >
             Exit

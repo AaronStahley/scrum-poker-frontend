@@ -1,6 +1,7 @@
 import { db } from "@/lib/firebase/firebase";
 import { getDoc, doc } from "firebase/firestore";
 import RoomClient from '@/app/components/room/RoomClient';
+import RoomNotFound from "@/app/components/room/RoomNotFound";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -16,7 +17,7 @@ const RoomPage = async ({ params }: PageProps) => {
   const roomData = roomSnap.exists() ? roomSnap.data() : null;
 
   if (!roomData) {
-    return <div className="text-center text-red-500">Room not found</div>;
+    return (<div className="text-center text-red-500"><RoomNotFound /></div>); 
   }
 
   return (

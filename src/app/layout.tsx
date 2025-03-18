@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import TopNavBar from "./components/nav/TopNavBar";
 import AuthProviderWrapper from "../app/components/auth/AuthProviderWrapper";
+import NewPlayerModal from "./components/player/NewPlayerModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
         >
           <AuthProviderWrapper>
             <TopNavBar />
+            <NewPlayerModal />
             <main className="container mx-auto px-4 py-4">{children}</main>
           </AuthProviderWrapper>
         </body>

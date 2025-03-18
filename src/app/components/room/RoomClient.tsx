@@ -1,20 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { db } from "@/lib/firebase/firebase";
 import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 import PlayerTable from "../player/PlayerTable"
 import PlayingCardSelector from "../card/PlayingCardSelector";
 import { Player } from "@/types/player";
 import { useAuth } from "@/app/contexts/auth";
+import useJoinRoom from "@/app/hooks/JoinRoom";
 
 const RoomClient = ({ roomId }: { roomId: string }) => {
-  const { player, loading } = useAuth();
+  const { player, loading, setShowModal } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [revealVotes, setRevealVotes] = useState(false);
   const roomRef = doc(db, "rooms", roomId);
+  const { joinRoom } = useJoinRoom();
 
   useEffect(() => {
+    // if (!player && !loading) {
+    //   console.error("Player has not been authenticated, cannot join room.");
+    //   setShowModal(true);
+    //   return;
+    // }
+
+    joinRoom(roomId);
+
     const roomRef = doc(db, "rooms", roomId);
 
     const unsubscribe = onSnapshot(roomRef, (docSnap) => {
@@ -35,7 +45,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
     });
 
     return () => unsubscribe();
-  }, [roomId]);
+  }, [roomId, player, loading]);
 
   const updatePlayerSelection = async (playerId: string, selection: string | number) => {
     await updateDoc(roomRef, {
