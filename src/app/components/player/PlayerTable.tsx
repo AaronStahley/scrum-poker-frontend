@@ -34,7 +34,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ currentPlayerId, players, rev
                 )}
               </td>
               <td>
-                {player.selection ? (
+                {player.selection !== null && player.selection !== undefined ? (
                   <span className="text-green-500">✅</span>
                 ) : (
                   <span className="text-red-500">❌</span>
