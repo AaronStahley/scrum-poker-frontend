@@ -3,7 +3,6 @@
 import { firebaseErrorMessages } from "@/lib/firebase/firebaseErrorMessages";
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase/firebase";
-import useJoinRoom from "@/app/hooks/JoinRoom";
 import { 
   User, 
   onAuthStateChanged, 
@@ -21,8 +20,10 @@ interface AuthContextType {
   setPlayer: (user: User | null) => void;
   upgradeAnonymousPlayer: (email: string, password: string) => Promise<void>;
   createNewAnonymousPlayer: (name: string) => Promise<void>;
-  pendingRoomId: string;
-  setPendingRoomId: (roomId: string) => void;
+  setPlayerCreated: (created: boolean) => void;
+  playerCreated: boolean;
+  pendingRoomId: string | null;
+  setPendingRoomId: (roomId: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -31,7 +32,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [player, setPlayer] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [pendingRoomId, setPendingRoomId] = useState<string>("");
+  const [pendingRoomId, setPendingRoomId] = useState<string | null>(null);
+  const [playerCreated, setPlayerCreated] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -74,13 +76,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const user = userCredential.user;
       await updateProfile(user!, { displayName: name });
       await auth.currentUser?.reload();
+      setPlayerCreated(true)
       setLoading(false);
       setShowModal(false);
-
-      if (pendingRoomId) { 
-        // joinRoom(pendingRoomId);
-      }
-
     }catch (err: unknown) {
       const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to create new anonymous player";
       throw new Error(errorMessage);
@@ -88,7 +86,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
   
   return (
-    <AuthContext.Provider value={{ player, loading, showModal, setShowModal, setPlayer, upgradeAnonymousPlayer, createNewAnonymousPlayer, pendingRoomId, setPendingRoomId }}>
+    <AuthContext.Provider value={{ 
+      player, 
+      loading, 
+      showModal,
+      setShowModal,
+      setPlayer, 
+      upgradeAnonymousPlayer, 
+      createNewAnonymousPlayer, 
+      setPlayerCreated, 
+      playerCreated, 
+      pendingRoomId, 
+      setPendingRoomId 
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,35 +1,46 @@
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { db } from "@/lib/firebase/firebase";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { Player } from "@/types/player";
 import { useAuth } from "@/app/contexts/auth";
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 
 const useJoinRoom = () => {
   const router = useRouter();
-  const { player, loading, setShowModal, setPendingRoomId } = useAuth();
+  const pathname = usePathname(); 
+  const { 
+    player, 
+    loading, 
+    setShowModal, 
+    setPlayerCreated, 
+    playerCreated, 
+    setPendingRoomId, 
+    pendingRoomId 
+  } = useAuth();
 
   const joinRoom = async (roomId: string) => {
-    if (!roomId) return;
+    setPendingRoomId(roomId);
 
     if (!player && !loading) {
       console.error("Player has not been authenticated, cannot join room.");
-      setPendingRoomId(roomId);
       setShowModal(true);
       return;
     }
 
-    if (!loading && player?.displayName) { 
+    if (player?.displayName && !loading) {
+      console.info("Player has authenticated, joining room.");
       try {
         const roomRef = doc(db, "rooms", roomId);
         const roomSnap = await getDoc(roomRef);
   
         if (!roomSnap.exists()) {
+          console.error("Room not found:", roomId);
           throw new Error("Room not found");
         }
   
-        // Check if the player is already in the room
+        console.log("checking if player is in the room")
         const roomData = roomSnap.data();
+        const createdBy = roomData.createdBy;
         const players = roomData.players || [];
         const playerInRoom = players.some((p: Player) => p.id === player?.uid);
   
@@ -41,6 +52,7 @@ const useJoinRoom = () => {
           
           try {
             await updateDoc(roomRef, {
+              createdBy: createdBy === "anonymous" ? player.uid : "", // If no createdBy this is a new room this person is creating.
               players: arrayUnion(newPlayer),
             });
             console.log("Player added to the room successfully!");
@@ -48,8 +60,11 @@ const useJoinRoom = () => {
             console.error("Error adding player to the room:", error);
           }
         }
-  
-        router.push(`/room/${roomId}`);
+
+        if (pathname !== `/room/${roomId}`) {
+          router.push(`/room/${roomId}`);
+        }
+        // router.push(`/room/${roomId}`);
       } catch (error: unknown) {
         console.error("Error joining room:", error);
         if (error instanceof Error) {
@@ -60,7 +75,17 @@ const useJoinRoom = () => {
     }
   };
 
-  return { joinRoom };
+  useEffect(() => {
+    
+    //TODO: I think there is an issue when joining directly from the URL when logged in. I think its here. 
+    if (playerCreated && pendingRoomId && !loading) {
+      console.log("Player created, joining room:", pendingRoomId);
+      joinRoom(pendingRoomId);
+      setPlayerCreated(false);
+    }
+  }, [playerCreated, pendingRoomId, loading]);
+
+  return { joinRoom, playerCreated, setPlayerCreated, setPendingRoomId };
 };
 
 export default useJoinRoom;

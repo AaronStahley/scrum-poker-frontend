@@ -10,21 +10,18 @@ import { useAuth } from "@/app/contexts/auth";
 import useJoinRoom from "@/app/hooks/JoinRoom";
 
 const RoomClient = ({ roomId }: { roomId: string }) => {
-  const { player, loading, setShowModal } = useAuth();
+  const { player, loading } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [revealVotes, setRevealVotes] = useState(false);
   const roomRef = doc(db, "rooms", roomId);
   const { joinRoom } = useJoinRoom();
 
   useEffect(() => {
-    // if (!player && !loading) {
-    //   console.error("Player has not been authenticated, cannot join room.");
-    //   setShowModal(true);
-    //   return;
-    // }
-
-    joinRoom(roomId);
-
+    if (roomId) {
+      console.log("[RoomClient] Joining room:", roomId);
+      joinRoom(roomId);
+    }
+    
     const roomRef = doc(db, "rooms", roomId);
 
     const unsubscribe = onSnapshot(roomRef, (docSnap) => {
@@ -45,7 +42,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
     });
 
     return () => unsubscribe();
-  }, [roomId, player, loading]);
+  }, [roomId]);
 
   const updatePlayerSelection = async (playerId: string, selection: string | number) => {
     await updateDoc(roomRef, {

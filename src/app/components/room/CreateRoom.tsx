@@ -6,35 +6,38 @@ import { db } from "@/lib/firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { Room } from "../../../types/room";
 import { useAuth } from "@/app/contexts/auth";
-import { User } from "firebase/auth";
+import useJoinRoom from "@/app/hooks/JoinRoom";
 
 const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
   const { player, setShowModal } = useAuth();
   const router = useRouter();
+  const { joinRoom, setPendingRoomId } = useJoinRoom();
 
   const createRoom = useCallback (async () => {
-    if (!player) {
-      console.error("No player found, cannot create room.");
-      setShowModal(true);
-      return;
-    }
+    // if (!player) {
+    //   console.error("No player found, cannot create room.");
+    //   setShowModal(true);
+    //   return;
+    // }
 
-    const playerId = player.uid;
-    const playerName = player.displayName ? player.displayName : playerId;
+    // const playerId = player?.uid ?? "new player"; // Use a default value if playerId is null or undefined
+    // // const playerName = player.displayName ? player.displayName : playerId;
+    // const newPlayer = player ? { id: playerId, name: playerName, selection: null } : {};
 
     try {
       const newRoom: Room = {
         createdAt: new Date(),
-        createdBy: playerId,
+        createdBy: "anonymous",
         name: roomName,
         status: "waiting",
-        players: [{ id: playerId, name: playerName, selection: null }],
+        players: [],
       };
 
       const roomRef = await addDoc(collection(db, "rooms"), newRoom);
       console.log("Room created successfully:", roomRef.id);
-      router.push(`/room/${roomRef.id}`);
+      joinRoom(roomRef.id);
+      // router.push(`/room/${roomRef.id}`);
     } catch (error) {
       console.error("Error creating room:", error);
     }

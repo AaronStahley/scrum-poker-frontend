@@ -4,29 +4,23 @@ import { useState} from "react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/20/solid";
 import { useAuth } from "@/app/contexts/auth";
 import Link from "next/link";
+import useJoinRoom from "@/app/hooks/JoinRoom";
 
 const NewPlayerModal = () => {
   const [playerName, setPlayerName] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const { showModal, setShowModal, createNewAnonymousPlayer } = useAuth();
+  // const { setPlayerCreated } = useJoinRoom();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (playerName.trim()) {
       createNewAnonymousPlayer(playerName);
-      setPlayerName("");
       setShowModal(false);
+      // setPlayerCreated(true);
+      setPlayerName("");
     }
   };
-
-  // useEffect(() => {
-  //   if (!isOpen) {
-  //     const modalElement = document.getElementById("my_modal_5") as HTMLDialogElement;
-  //     if (modalElement) {
-  //       modalElement.close();
-  //     }
-  //   }
-  // }, [isOpen]);
 
   if(!showModal) return null;
 
@@ -36,7 +30,7 @@ const NewPlayerModal = () => {
         <div className="mb-4">
           <h2 className="text-xl font-bold">Welcome!</h2>
           <p className="text-sm text-secondary mb-5">It looks like you are new here. Please enter your name to create a temporary account or {" "}
-          <Link className="text-secondary underline" href="/login">Log In</Link>
+          <Link onClick={() => setShowModal(false)} className="text-secondary underline" href="/login">Log In</Link>
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -57,8 +51,8 @@ const NewPlayerModal = () => {
             <p className="text-sm text-primary-content">
               We will attempt to lookup if you have played before. If you have, you will be able to continue your game. 
               Changing browsers or clearing your cache will result in a new player being created. To avoid this, please {" "}
-              <Link className="text-secondary hover:underline" href="/login">Log In</Link> or{" "}
-              <Link className="text-secondary hover:underline" href="/signup">Create an Account</Link>  
+              <Link onClick={() => setShowModal(false)} className="text-secondary hover:underline" href="/login">Log In</Link> or{" "}
+              <Link onClick={() => setShowModal(false)} className="text-secondary hover:underline" href="/signup">Create an Account</Link>  
             </p>
           </div>
         )}

@@ -5,7 +5,7 @@ import useJoinRoom from "@/app/hooks/JoinRoom";
 
 const JoinRoom = () => {
   const [roomId, setRoomId] = useState("");
-  const { joinRoom } = useJoinRoom();
+  const { joinRoom, setPendingRoomId } = useJoinRoom();
 
   const handleJoinRoomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,16 +16,8 @@ const JoinRoom = () => {
     }
   }
 
-  // useEffect(() => {
-  //   if (player && navigateToRoom) {
-  //     console.log("Joining room for player: ", player.displayName);
-  //     joinRoom(roomId, player, player.displayName);
-  //   }
-  // }, [player, navigateToRoom, roomId, joinRoom]); 
-
   return (
     <>
-      {/* <CreateNewPlayer create={createNewPlayer} onPlayerCreated={handlePlayerCreated} /> */}
       <form onSubmit={handleJoinRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
         <input
           type="text"

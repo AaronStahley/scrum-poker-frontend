@@ -1,18 +1,18 @@
-"use client";
+// "use client";
 
-import { useEffect } from "react";
-import useJoinRoom from "@/app/hooks/JoinRoom";
+// import { useEffect } from "react";
+// import useJoinRoom from "@/app/hooks/JoinRoom";
 
-const JoinRoom = ({ roomId }: { roomId: string }) => {
-  const { joinRoom } = useJoinRoom();
+// const JoinRoom = ({ roomId }: { roomId: string }) => {
+//   const { joinRoom } = useJoinRoom();
 
-  if (!roomId) return null;
+//   if (!roomId) return null;
 
-  useEffect(() => {
-      joinRoom(roomId);
-  }, [roomId, joinRoom]); 
+//   useEffect(() => {
+//       joinRoom(roomId);
+//   }, [roomId, joinRoom]); 
 
-  return (<></>);
-};
+//   return (<></>);
+// };
 
-export default JoinRoom;
+// export default JoinRoom;
