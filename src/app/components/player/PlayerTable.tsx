@@ -18,6 +18,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ currentPlayerId, players, rev
           <tr className="bg-primary text-white">
             <th className="text-left p-3">Player</th>
             <th className="text-left p-3">Selection</th>
+            <th className="text-left p-3">Has Voted?</th>
             <th className="text-left p-3">Actions</th>
           </tr>
         </thead>
@@ -30,6 +31,13 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ currentPlayerId, players, rev
                   <span className="font-bold">{player.selection ?? "?"}</span>
                 ) : (
                   <span className="text-secondary">🔒 Hidden</span>
+                )}
+              </td>
+              <td>
+                {player.selection ? (
+                  <span className="text-green-500">✅</span>
+                ) : (
+                  <span className="text-red-500">❌</span>
                 )}
               </td>
               <td className="p-1">
