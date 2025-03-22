@@ -13,6 +13,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const { player, loading } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [revealVotes, setRevealVotes] = useState(false);
+  const [resetCardSelector, setResetCardSelector] = useState(false);
   const roomRef = doc(db, "rooms", roomId);
   const { joinRoom } = useJoinRoom();
 
@@ -30,10 +31,14 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
         const players = docSnap.data().players;
 
         setPlayers(players);
-
+        
         if (roomStatus === "revealed") {
           setRevealVotes(true);
-        }else { 
+        }else {
+          const votesReset = players.every((p : Player) => p.selection == null);
+          if (votesReset) {
+            setResetCardSelector(true)
+          }
           setRevealVotes(false);
         }
       } else {
@@ -45,6 +50,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   }, [roomId]);
 
   const updatePlayerSelection = async (playerId: string, selection: string | number) => {
+    setResetCardSelector(false);
     await updateDoc(roomRef, {
       players: players.map((player) =>
         player.id === playerId ? { ...player, selection } : player
@@ -80,7 +86,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
 
   return (
     <div>
-    <PlayingCardSelector playerId={player?.uid} onSelect={updatePlayerSelection} />
+    <PlayingCardSelector reset={resetCardSelector} playerId={player?.uid} onSelect={updatePlayerSelection} />
     <div className='flex flex-wrap gap-4 justify-center p-6'>
       <button className="text-base btn btn-primary" onClick={handlRevealVotes}>Reveal Votes</button>
       <button className="text-base btn btn-secondary" onClick={resetVotes}>Reset Votes</button>
