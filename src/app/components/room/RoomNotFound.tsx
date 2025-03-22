@@ -15,7 +15,7 @@ const RoomNotFound = () => {
   }, [router]);
 
   return (
-    <div className="text-center text-red-500">
+    <div className="text-center text-error">
       Room not found. Redirecting...
     </div>
   );

@@ -2,17 +2,25 @@
 
 import { useState } from "react";
 import useJoinRoom from "@/app/hooks/JoinRoom";
+import { XCircleIcon } from '@heroicons/react/20/solid';
 
 const JoinRoom = () => {
   const [roomId, setRoomId] = useState("");
-  const { joinRoom, setPendingRoomId } = useJoinRoom();
+  const { joinRoom } = useJoinRoom();
+  const [error, setError] = useState("");
 
-  const handleJoinRoomSubmit = (e: React.FormEvent) => {
+  const handleJoinRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     
     const form = e.target as HTMLFormElement;
     if (form.checkValidity()) {
-      joinRoom( roomId );
+      try { 
+        await joinRoom( roomId );
+      } catch (error) {
+        setError("Room does not exist");
+        console.error("Error joining room:", error);
+      }
     }
   }
 
@@ -38,6 +46,12 @@ const JoinRoom = () => {
           Join Room
         </button>
       </form>
+      {error &&
+        <div role="alert" className="alert alert-error rounded-md">
+        <XCircleIcon className="h-6 w-6" />
+        <span>{error}</span>
+      </div>
+      }
     </>
   )
 }

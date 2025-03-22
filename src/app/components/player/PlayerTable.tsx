@@ -3,6 +3,7 @@ import { Player } from '../../../types/player';
 import { TrashIcon } from '@heroicons/react/20/solid';
 
 interface PlayerTableProps {
+  roomOwnerId: string | undefined;
   currentPlayerId: string | null;
   players: Player[];
   revealVotes: boolean;
@@ -10,12 +11,12 @@ interface PlayerTableProps {
   // editPlayer: (playerName: string) => void; //TODO: Implement edit player
 }
 
-const PlayerTable: React.FC<PlayerTableProps> = ({ currentPlayerId, players, revealVotes, removePlayer }) => {
+const PlayerTable: React.FC<PlayerTableProps> = ({roomOwnerId, currentPlayerId, players, revealVotes, removePlayer }) => {
   return (
     <div className="w-full max-w-4xl mx-auto overflow-x-auto rounded-lg">
-      <table className="table table-zebra w-full border border-base-300">
+      <table className="table w-full border border-base-300">
         <thead>
-          <tr className="bg-primary text-white">
+          <tr className="bg-primary text-primary-content">
             <th className="text-left p-3">Player</th>
             <th className="text-left p-3">Selection</th>
             <th className="text-left p-3">Has Voted?</th>
@@ -24,8 +25,11 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ currentPlayerId, players, rev
         </thead>
         <tbody>
           {players.map((player) => (
-            <tr key={player.name} className="hover">
-              <td className="p-3">{player.name}</td>
+            <tr key={player.id} className="hover">
+              <td className="p-3">
+                {/* <div aria-label="status" className="status status-success mr-3"></div> */}
+                {player.name}
+              </td>
               <td className="p-3">
                 {revealVotes ? (
                   <span className="font-bold">{player.selection ?? "?"}</span>
@@ -41,10 +45,10 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ currentPlayerId, players, rev
                 )}
               </td>
               <td className="p-1">
-                {player.id !== currentPlayerId && (
+                {roomOwnerId != player.id && player.id !== currentPlayerId && (
                   <button
-                  className="btn btn-sm btn-danger text-white"
-                  onClick={() => removePlayer(player.name)}
+                  className="btn btn-danger"
+                  onClick={() => removePlayer(player.id)}
                   >
                   <TrashIcon className="h-5 w-5" />
                   </button>

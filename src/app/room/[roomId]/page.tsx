@@ -17,7 +17,7 @@ const RoomPage = async ({ params }: PageProps) => {
   const roomData = roomSnap.exists() ? roomSnap.data() : null;
 
   if (!roomData) {
-    return (<div className="text-center text-red-500"><RoomNotFound /></div>); 
+    return (<div className="text-center text-error"><RoomNotFound /></div>); 
   }
 
   return (

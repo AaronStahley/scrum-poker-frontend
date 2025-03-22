@@ -15,8 +15,8 @@ import {
 interface AuthContextType {
   player: User | null;
   loading: boolean;
-  showModal: boolean;
-  setShowModal: (show: boolean) => void;
+  showCreateNewPlayerModal: boolean;
+  setShowCreateNewPlayerModal: (show: boolean) => void;
   setPlayer: (user: User | null) => void;
   upgradeAnonymousPlayer: (email: string, password: string) => Promise<void>;
   createNewAnonymousPlayer: (name: string) => Promise<void>;
@@ -31,13 +31,12 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [player, setPlayer] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showCreateNewPlayerModal, setShowCreateNewPlayerModal] = useState(false);
   const [pendingRoomId, setPendingRoomId] = useState<string | null>(null);
   const [playerCreated, setPlayerCreated] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log("Auth state changed:", firebaseUser);
       setPlayer(firebaseUser);
       setLoading(false);
     });
@@ -78,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await auth.currentUser?.reload();
       setPlayerCreated(true)
       setLoading(false);
-      setShowModal(false);
+      setShowCreateNewPlayerModal(false);
     }catch (err: unknown) {
       const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to create new anonymous player";
       throw new Error(errorMessage);
@@ -89,8 +88,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     <AuthContext.Provider value={{ 
       player, 
       loading, 
-      showModal,
-      setShowModal,
+      showCreateNewPlayerModal,
+      setShowCreateNewPlayerModal,
       setPlayer, 
       upgradeAnonymousPlayer, 
       createNewAnonymousPlayer, 

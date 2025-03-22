@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase/firebase";
 import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 import PlayerTable from "../player/PlayerTable"
@@ -8,41 +8,36 @@ import PlayingCardSelector from "../card/PlayingCardSelector";
 import { Player } from "@/types/player";
 import { useAuth } from "@/app/contexts/auth";
 import useJoinRoom from "@/app/hooks/JoinRoom";
+import { Room } from "@/types/room";
 
 const RoomClient = ({ roomId }: { roomId: string }) => {
   const { player, loading } = useAuth();
-  const [players, setPlayers] = useState<Player[]>([]);
+  // const [players, setPlayers] = useState<Player[]>([]);
+  const [room, setRoom] = useState<Room>();
   const [revealVotes, setRevealVotes] = useState(false);
   const [resetCardSelector, setResetCardSelector] = useState(false);
   const roomRef = doc(db, "rooms", roomId);
-  const { joinRoom } = useJoinRoom();
+  const {} = useJoinRoom({autoJoinRoomId: roomId});
 
-  useEffect(() => {
-    if (roomId) {
-      console.log("[RoomClient] Joining room:", roomId);
-      joinRoom(roomId);
-    }
-    
+  useEffect(() => { 
     const roomRef = doc(db, "rooms", roomId);
 
-    const unsubscribe = onSnapshot(roomRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const roomStatus = docSnap.data().status;
-        const players = docSnap.data().players;
-
-        setPlayers(players);
+    const unsubscribe = onSnapshot(roomRef, (roomSnap) => {
+      if (roomSnap.exists()) {
+        const room = roomSnap.data() as Room;
+        setRoom(room);
         
-        if (roomStatus === "revealed") {
+        if (room.status === "revealed") {
           setRevealVotes(true);
         }else {
-          const votesReset = players.every((p : Player) => p.selection == null);
+          const votesReset = room.players.every((p : Player) => p.selection == null);
           if (votesReset) {
             setResetCardSelector(true)
           }
           setRevealVotes(false);
         }
       } else {
-        setPlayers([]);
+        setRoom(undefined);
       }
     });
 
@@ -52,7 +47,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const updatePlayerSelection = async (playerId: string, selection: string | number) => {
     setResetCardSelector(false);
     await updateDoc(roomRef, {
-      players: players.map((player) =>
+      players: room?.players.map((player) =>
         player.id === playerId ? { ...player, selection } : player
       ),
     });
@@ -61,7 +56,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const resetVotes = async () => {
     await updateDoc(roomRef, {
         status: "waiting",
-        players: players.map((player) => ({
+        players: room?.players.map((player) => ({
             ...player,
             selection: null,
         })),
@@ -74,11 +69,19 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
     });
   }
 
-  const removePlayer = (name: string) => {
-    setPlayers((prevPlayers) => prevPlayers.filter((player) => player.name !== name));
+  const removePlayer = (id: string) => {
+    if (room?.createdBy === id) return;
+
+    setRoom((prevRoom) => {
+      if (!prevRoom) return prevRoom;
+      return {
+        ...prevRoom,
+        players: prevRoom.players.filter((player) => player.id !== id),
+      };
+    }); 
 
     updateDoc(roomRef, {
-      players: players.filter((player) => player.name !== name),
+      players: room?.players.filter((player) => player.id !== id),
     });
   };
 
@@ -92,7 +95,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
       <button className="text-base btn btn-secondary" onClick={resetVotes}>Reset Votes</button>
     </div>
     {player &&(
-      <PlayerTable currentPlayerId={player.uid} players={players} revealVotes={revealVotes} removePlayer={removePlayer} />
+      <PlayerTable roomOwnerId={room?.createdBy} currentPlayerId={player.uid} players={room?.players ?? []} revealVotes={revealVotes} removePlayer={removePlayer} />
     )}
     </div>
   );

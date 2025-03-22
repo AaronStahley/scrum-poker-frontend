@@ -28,7 +28,7 @@ const LoginPage = () => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
       <h1 className="text-4xl font-bold mb-5">Login</h1>
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-error">{error}</p>}
       <form onSubmit={handleLogin} className="flex flex-col gap-4 w-full max-w-md">
         <input 
           type="email" 

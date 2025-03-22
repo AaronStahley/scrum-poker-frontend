@@ -62,7 +62,7 @@ const SignUpPage = () => {
       <p className="text-lg text-secondary mb-5">
         You are currently signed in as a guest. Please sign up to ensure your progress is saved.
       </p>
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-error">{error}</p>}
       <form onSubmit={handleConvertAnonymousUser} className="flex flex-col gap-4 w-full max-w-md">
         <input 
             type="email" 
@@ -92,7 +92,7 @@ const SignUpPage = () => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
       <h1 className="text-4xl font-bold mb-5">Sign Up</h1>
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-error">{error}</p>}
       <form onSubmit={handleSignUp} className="flex flex-col gap-4 w-full max-w-md">
         <input 
             type="text" 
