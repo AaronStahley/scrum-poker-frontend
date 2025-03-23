@@ -12,7 +12,6 @@ import { Room } from "@/types/room";
 
 const RoomClient = ({ roomId }: { roomId: string }) => {
   const { player, loading } = useAuth();
-  // const [players, setPlayers] = useState<Player[]>([]);
   const [room, setRoom] = useState<Room>();
   const [revealVotes, setRevealVotes] = useState(false);
   const [resetCardSelector, setResetCardSelector] = useState(false);
@@ -95,7 +94,14 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
       <button className="text-base btn btn-secondary" onClick={resetVotes}>Reset Votes</button>
     </div>
     {player &&(
-      <PlayerTable roomOwnerId={room?.createdBy} currentPlayerId={player.uid} players={room?.players ?? []} revealVotes={revealVotes} removePlayer={removePlayer} />
+      <PlayerTable 
+        initislSortDirection="asc"
+        roomOwnerId={room?.createdBy}
+        currentPlayerId={player.uid}
+        players={room?.players ?? []}
+        revealVotes={revealVotes}
+        removePlayer={removePlayer} 
+      />
     )}
     </div>
   );
