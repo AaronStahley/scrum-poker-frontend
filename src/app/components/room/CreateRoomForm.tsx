@@ -2,38 +2,28 @@
 
 import { useState } from "react";
 import { db } from "@/lib/firebase/firebase";
-import { collection, addDoc } from "firebase/firestore";
-import { Room } from "../../../types/room";
+import {doc} from "firebase/firestore";
 import useJoinRoom from "@/app/hooks/JoinRoom";
+import { createRoom } from "@/lib/firebase/room";
+import { createPlayer } from "@/lib/firebase/player";
+import { useAuth } from "@/app/contexts/auth";
 
 const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
   const { joinRoom } = useJoinRoom();
-
-  const createRoom = async () => {
-    try {
-      const newRoom: Room = {
-        createdAt: new Date(),
-        createdBy: "anonymous",
-        name: roomName,
-        status: "waiting",
-        players: [],
-      };
-
-      const roomRef = await addDoc(collection(db, "rooms"), newRoom);
-      console.log("Room created successfully:", roomRef.id);
-      joinRoom(roomRef.id);
-    } catch (error) {
-      console.error("Error creating room:", error);
-    }
-  };
-
-  const handleCreateNewRoomSubmit = (e: React.FormEvent) => {
+  const { player, loading } = useAuth();
+      
+  const handleCreateNewRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const form = e.target as HTMLFormElement;
     if (form.checkValidity()) {
-      createRoom();
+      try { 
+        const roomId = await createRoom(roomName, player?.uid);
+        await joinRoom(roomId);
+      }catch (error) {
+        console.error("Error creating room:", error);
+      }
     }
   };
 

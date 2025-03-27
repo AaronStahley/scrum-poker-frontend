@@ -1,9 +1,8 @@
-import { useRouter, usePathname } from "next/navigation";
-import { db } from "@/lib/firebase/firebase";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { Player } from "@/types/player";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/auth";
 import { useEffect } from "react";
+import { addPlayerToRoom, isPlayerInRoom } from "@/lib/firebase/room";
+import { createPlayer, playerExists } from "@/lib/firebase/player";
 
 type UseJoinRoomOptions = {
   autoJoinRoomId?: string | null;
@@ -11,7 +10,6 @@ type UseJoinRoomOptions = {
 
 const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
   const router = useRouter();
-  const pathname = usePathname(); 
   const { 
     player, 
     loading, 
@@ -36,42 +34,19 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
       return;
     }
 
-    try { 
-      const roomRef = doc(db, "rooms", roomId);
-      const roomSnap = await getDoc(roomRef);
-
-      //Check if the room exists
-      if (!roomSnap.exists()) {
-        console.error("Room not found:", roomId);
-        throw new Error("Room not found");
+    try {
+      if (!(await playerExists(player.uid))) {
+        await createPlayer(player.uid, player.displayName);
       }
 
-      //Check if the player is already in the room
-      console.log("checking if player is in the room")
-      const roomData = roomSnap.data();
-      const createdBy = roomData.createdBy;
-      const players = roomData.players || [];
-      const playerInRoom = players.some((p: Player) => p.id === player?.uid);
-
-      if (!playerInRoom) { 
-        console.log("Player not found in the room, adding player.");
-        console.log("Player Display Name: ", player.displayName);
-        const newPlayer: Player = { id: player.uid, name: player.displayName, selection: null };
-
-        await updateDoc(roomRef, {
-          createdBy: createdBy === "anonymous" ? player.uid : createdBy, // If no createdBy this is a new room this person is creating.
-          players: arrayUnion(newPlayer),
-        });
-        console.log("Player added to the room successfully!");
+      if (!(await isPlayerInRoom(roomId, player.uid))) {
+        await addPlayerToRoom(roomId, player.uid);
       }
 
-      if (pathname !== `/room/${roomId}`) {
-        router.push(`/room/${roomId}`);
-      }
-
-    } catch (error) { 
-      throw error;
-    }  
+      router.push(`/room/${roomId}`);
+    } catch (error) {
+      console.error("Error joining room:", error);
+    }
   };
 
   useEffect(() => {

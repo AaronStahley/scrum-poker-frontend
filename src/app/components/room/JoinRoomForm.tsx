@@ -1,13 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useJoinRoom from "@/app/hooks/JoinRoom";
-import { XCircleIcon } from '@heroicons/react/20/solid';
+import { XCircleIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
+import { getFirestore, collectionGroup, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase/firebase";
 
 const JoinRoom = () => {
   const [roomId, setRoomId] = useState("");
   const { joinRoom } = useJoinRoom();
   const [error, setError] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [previousRooms, setPreviousRooms] = useState<any>([]); // Replace with your actual items
+
+  const getPreviousRooms = async (playerId: string) => {
+    const q = query(
+      collectionGroup(db, "players"),
+      where("id", "==", playerId)
+    );
+  
+    const snapshot = await getDocs(q);
+  
+    const rooms: any = [];
+  
+    snapshot.forEach((doc) => {
+      const playerData = doc.data();
+      const roomRef = doc.ref.parent.parent; // `players` is a subcollection under the room
+      rooms.push({
+        roomId: roomRef?.id,
+        ...playerData
+      });
+    });
+
+    setPreviousRooms(rooms);
+  }
 
   const handleJoinRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,21 +50,66 @@ const JoinRoom = () => {
     }
   }
 
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target && !target.closest(".dropdown-content")) {
+      setShowDropdown(false);
+    }
+  };
+
+  useEffect(() => {
+    getPreviousRooms("VfIhoZtOgbQl2QdhbFGRM9OLnQu2")
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleSelect = (item: string) => {
+    setRoomId(item);
+    setShowDropdown(false);
+  };
+
   return (
     <>
-      <form onSubmit={handleJoinRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
-        <input
-          type="text"
-          placeholder="Existing Room ID"
-          name="roomId"
-          className={`input input-bordered min-w-64`}
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-          required
-          minLength={20}
-          maxLength={20}
-          // pattern="^[a-zA-Z0-9]{20}$" //TODO: figure out how to use this with custom message
-        />
+      <form onSubmit={handleJoinRoomSubmit} className="flex flex-col sm:flex-row  items-start gap-4">
+        <div>
+        <label className="input input-bordered flex items-center gap-2">
+          <input 
+            type="text" 
+            className="min-w-64" 
+            placeholder="Existing Room Id"
+            name="roomId"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+            onClick={() => setShowDropdown(true)}
+            required
+            minLength={20}
+            maxLength={20}            
+          />
+          <ChevronDownIcon className="w-6 h-6" />
+        </label>
+        {showDropdown && (
+          <ul className="menu dropdown-content bg-secondary-content rounded-box z-1 min-w-64 p-2 shadow-md">
+            {previousRooms.length ? (
+              previousRooms.map((previousRoom) => (
+                <li
+                  key={previousRoom}
+                  onClick={() => handleSelect(previousRoom)}
+                  className="cursor-pointer p-2 hover:bg-secondary"
+                >
+                  {previousRoom}
+                </li>
+              ))
+            ) : (
+              <li className="p-2 text-gray-500">No results found</li>
+            )}
+          </ul>
+        )}
+        </div>
         <button
           type="submit"
           className="btn btn-secondary min-w-30"

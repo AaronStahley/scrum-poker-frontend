@@ -5,6 +5,5 @@ export interface Room {
     createdBy: string;
     name: string;
     status: string;
-    players: Player[];
+    players: string[];
 }
-  
