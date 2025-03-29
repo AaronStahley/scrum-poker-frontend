@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { db } from "@/lib/firebase/firebase";
-import {doc} from "firebase/firestore";
-import useJoinRoom from "@/app/hooks/JoinRoom";
+import useJoinRoom from "@/app/hooks/useJoinRoom";
 import { createRoom } from "@/lib/firebase/room";
-import { createPlayer } from "@/lib/firebase/player";
 import { useAuth } from "@/app/contexts/auth";
 
 const CreateRoom = () => {

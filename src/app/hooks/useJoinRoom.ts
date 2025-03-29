@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/auth";
 import { useEffect } from "react";
 import { addPlayerToRoom, isPlayerInRoom } from "@/lib/firebase/room";
-import { createPlayer, playerExists } from "@/lib/firebase/player";
+import { addRoomToPlayer, createPlayer, playerExists } from "@/lib/firebase/player";
 
 type UseJoinRoomOptions = {
   autoJoinRoomId?: string | null;
@@ -35,14 +35,15 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
     }
 
     try {
-      if (!(await playerExists(player.uid))) {
+      const playerExistsInDb = await playerExists(player.uid);
+      if (!playerExistsInDb) {
         await createPlayer(player.uid, player.displayName);
       }
 
-      if (!(await isPlayerInRoom(roomId, player.uid))) {
-        await addPlayerToRoom(roomId, player.uid);
-      }
-
+      await Promise.all([
+        addPlayerToRoom(roomId, player.uid),
+        addRoomToPlayer(player.uid, roomId),
+      ]);
       router.push(`/room/${roomId}`);
     } catch (error) {
       console.error("Error joining room:", error);

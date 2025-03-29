@@ -1,7 +1,8 @@
 import { db } from "@/lib/firebase/firebase";
-import {doc, addDoc, getDoc, updateDoc, collection, Timestamp } from "firebase/firestore";
+import {doc, addDoc, getDoc, updateDoc, collection, Timestamp, arrayUnion } from "firebase/firestore";
 import { Player } from "@/types/player";
 import { Room } from "@/types/room";
+import { addRoomToPlayer } from "./player";
 
 export const createRoom = async (roomName: string, ownerId: string | null | undefined) => {
     const roomStatus = "waiting";
@@ -19,8 +20,14 @@ export const createRoom = async (roomName: string, ownerId: string | null | unde
     };
 
     const roomRef = await addDoc(collection(db, 'rooms'), newRoom);
+
     console.log(`Room created with ID: ${roomRef.id}`);
     return roomRef.id;
+};
+
+export const updateRoom = async (roomId: string, roomData: Partial<Room>) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    await updateDoc(roomRef, roomData);
 };
 
 export const addPlayerToRoom = async (roomId: string, playerId: string) => {
@@ -32,16 +39,20 @@ export const addPlayerToRoom = async (roomId: string, playerId: string) => {
     }
 
     const roomData = roomSnap.data();
-    const players = roomData.players || [];
-    const playerInRoom = players.some((p: string) => p === playerId);
+    const playersInRoom = roomData.players || [];
+    const isPlayerInRoom = playersInRoom.some((p: string) => p === playerId);
     
-    if (playerInRoom) {
-        throw new Error("Player already in room");
+    if (isPlayerInRoom) {
+        console.log("Player already in room:", playerId);
+        return;
     }
 
+    console.log("Adding player to room:", roomId, playerId);
+
+    //Update the room with the player
     await updateDoc(roomRef, {
-        ownerId: roomData.ownerId === "anonymous" ? playerId : roomData.ownerId,
-        players: players.concat(playerId),
+        createdBy: roomData.createdBy === "anonymous" ? playerId : roomData.createdBy,
+        players: arrayUnion(playerId),
     });
 };
 
@@ -57,11 +68,7 @@ export const isPlayerInRoom = async (roomId: string, playerId: string) => {
     const players = roomData.players || [];
     const playerInRoom = players.some((p: string) => p === playerId);
 
-    if (!playerInRoom) {
-        return false;
-    }
-
-    return true;
+    return playerInRoom;
 }
 
 export const getRoom = async (roomId: string) => {
@@ -74,3 +81,4 @@ export const getRoom = async (roomId: string) => {
 
     return roomSnap.data();
 }
+

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import useJoinRoom from "@/app/hooks/JoinRoom";
+import useJoinRoom from "@/app/hooks/useJoinRoom";
 import { XCircleIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
-import { getFirestore, collectionGroup, query, where, getDocs } from "firebase/firestore";
+import { collectionGroup, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 
 const JoinRoom = () => {

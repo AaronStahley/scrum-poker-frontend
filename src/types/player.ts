@@ -3,6 +3,7 @@ export interface Player {
     name: string;
     selection: number | string | null;
     currentRoom: string | null;
+    rooms: string[];
     createdAt: Date;
   }
   
