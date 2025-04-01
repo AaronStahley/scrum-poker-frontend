@@ -51,24 +51,18 @@ export function usePlayersInRoom(roomId: string) {
         playerUnsubscribes = [];
 
         const chunks = chunkArray(playerIds, 10);
-        let allPlayers: Player[] = [];
 
         for (const chunk of chunks) {
           const q = query(collection(db, 'players'), where('__name__', 'in', chunk));
-
           const unsubscribe = onSnapshot(q, (snapshot) => {
             const updatedPlayers = snapshot.docs.map((doc) => ({
               ...(doc.data() as Player),
               id: doc.id,
             }));
-
-            // Merge old and new player lists
-            setPlayers((prev) => {
-              const others = prev.filter((p) => !chunk.includes(p.id));
-              return [...others, ...updatedPlayers];
-            });
-
-            console.log('Updated Players:', updatedPlayers);
+          
+            setPlayers(updatedPlayers);
+          
+            console.log("Updated Players:", updatedPlayers);
             setLoading(false);
           });
 

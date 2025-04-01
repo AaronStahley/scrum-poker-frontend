@@ -69,6 +69,29 @@ export const addRoomToPlayer = async (playerId: string, roomId: string) => {
     });
 }
 
+export const removeRoomFromPlayer = async (playerId: string, roomId: string) => {
+    const playerRef = doc(db, 'players', playerId);
+    const playerSnap = await getDoc(playerRef);
+
+    if (!playerSnap.exists()) {
+        throw new Error("Player not found");
+    }
+
+    const playerData = playerSnap.data();
+    const playersInRoom = playerData.rooms || [];
+    const isPlayerInRoom = playersInRoom.some((p: string) => p === roomId);
+    if (!isPlayerInRoom) {
+        console.log("Player is not part of the associated room", roomId);
+        return;
+    }
+
+    //Remove the player from the room
+    await updateDoc(playerRef, {
+        rooms: playersInRoom.filter((r: string) => r !== roomId),
+    });
+    
+}
+
 export const getPlayersInRoom = async (roomId: string) => {
     console.log("Getting players in room:", roomId);
     const roomRef = doc(db, 'rooms', roomId);

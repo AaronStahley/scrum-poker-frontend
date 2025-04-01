@@ -9,8 +9,8 @@ import { Player } from "@/types/player";
 import { useAuth } from "@/app/contexts/auth";
 import useJoinRoom from "@/app/hooks/useJoinRoom";
 import { Room } from "@/types/room";
-import { getPlayersInRoom, updatePlayer, listenToPlayersInRoom } from "@/lib/firebase/player";
-import { updateRoom } from "@/lib/firebase/room";
+import { getPlayersInRoom, updatePlayer, listenToPlayersInRoom, removeRoomFromPlayer } from "@/lib/firebase/player";
+import { updateRoom, removePlayerFromRoom } from "@/lib/firebase/room";
 import { usePlayersInRoom } from "@/app/hooks/usePlayersInRoom";
 
 
@@ -76,20 +76,9 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
     await updateRoom(roomId, { status: "revealed" });
   }
 
-  const removePlayer = (id: string) => {
-    // if (room?.createdBy === id) return;
-
-    // setRoom((prevRoom) => {
-    //   if (!prevRoom) return prevRoom;
-    //   return {
-    //     ...prevRoom,
-    //     players: prevRoom.players.filter((player) => player.id !== id),
-    //   };
-    // }); 
-
-    // updateDoc(roomRef, {
-    //   players: room?.players.filter((player) => player.id !== id),
-    // });
+  const removePlayer = async (id: string) => {
+    await removePlayerFromRoom(roomId, id);
+    await removeRoomFromPlayer(id, roomId);
   };
 
   if (loading || playersInRoomLoading) return <p>Loading players...</p>;
