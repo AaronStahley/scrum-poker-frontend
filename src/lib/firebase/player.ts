@@ -32,6 +32,17 @@ export const createPlayer = async (playerId: string, playerName: string) => {
     return playerRef.id;
 };
 
+export const updatePlayers = async (roomId: string, playerData: Partial<Player>) => {
+    const playersRef = collection(db, 'players');
+    const q = query(playersRef, where('currentRoom', '==', roomId));
+    const querySnap = await getDocs(q);
+
+    querySnap.forEach(async (doc) => {
+        console.log("Updating player:", doc.id, playerData);
+        await updateDoc(doc.ref, playerData);
+    });
+}
+
 export const updatePlayer = async (playerId: string, playerData: Partial<Player>) => {
     const playerRef = doc(db, 'players', playerId);
     await updateDoc(playerRef, playerData);
@@ -65,6 +76,7 @@ export const addRoomToPlayer = async (playerId: string, roomId: string) => {
     }
 
     await updateDoc(playerRef, {
+        currentRoom: roomId,
         rooms: arrayUnion(roomId),
     });
 }
