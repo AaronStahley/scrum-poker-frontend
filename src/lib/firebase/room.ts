@@ -1,8 +1,17 @@
+import {
+    doc, 
+    addDoc,
+    getDoc, 
+    updateDoc, 
+    collection, 
+    arrayUnion, 
+    query, 
+    collectionGroup, 
+    where, 
+    getDocs 
+} from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
-import {doc, addDoc, getDoc, updateDoc, collection, Timestamp, arrayUnion } from "firebase/firestore";
-import { Player } from "@/types/player";
 import { Room } from "@/types/room";
-import { addRoomToPlayer } from "./player";
 
 export const createRoom = async (roomName: string, ownerId: string | null | undefined) => {
     const roomStatus = "waiting";
@@ -11,7 +20,7 @@ export const createRoom = async (roomName: string, ownerId: string | null | unde
         ownerId = "anonymous";
     }
 
-    const newRoom: Room = {
+    const newRoom: Partial<Room> = {
         createdAt: new Date(),
         createdBy: ownerId,
         name: roomName,
@@ -104,3 +113,23 @@ export const getRoom = async (roomId: string) => {
     return roomSnap.data();
 }
 
+export const getPreviousRooms = async (playerId: string) => {
+    const q = query(
+        collectionGroup(db, "rooms"),
+        where("players", "array-contains", playerId)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const rooms: any = [];
+
+    snapshot.forEach((doc) => {
+        const roomData = doc.data();
+        rooms.push({
+            id: doc.id,
+            ...roomData
+        } as unknown as Room);
+    });
+
+    return rooms;
+}
