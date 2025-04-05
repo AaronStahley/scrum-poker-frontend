@@ -5,7 +5,7 @@ import PlayerTable from "../player/PlayerTable"
 import PlayingCardSelector from "../card/PlayingCardSelector";
 import { useAuth } from "@/app/contexts/auth";
 import useJoinRoom from "@/app/hooks/useJoinRoom";
-import { updatePlayers, updatePlayer, removeRoomFromPlayer } from "@/lib/firebase/player";
+import { updatePlayers, updatePlayer } from "@/lib/firebase/player";
 import { updateRoom, removePlayerFromRoom } from "@/lib/firebase/room";
 import { usePlayersInRoom } from "@/app/hooks/usePlayersInRoom";
 import { useCurrentRoom } from "@/app/hooks/useCurrentRoom";
@@ -34,7 +34,6 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
 
   const removePlayer = async (id: string) => {
     await removePlayerFromRoom(roomId, id);
-    await removeRoomFromPlayer(id, roomId);
   };
 
   useEffect(() => {

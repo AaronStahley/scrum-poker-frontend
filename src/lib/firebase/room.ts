@@ -13,6 +13,7 @@ import {
 import { db } from "@/lib/firebase/firebase";
 import { Room } from "@/types/room";
 
+// Create a new room
 export const createRoom = async (roomName: string, ownerId: string | null | undefined) => {
     const roomStatus = "waiting";
 
@@ -34,11 +35,41 @@ export const createRoom = async (roomName: string, ownerId: string | null | unde
     return roomRef.id;
 };
 
+// Get a room by ID
+export const getRoom = async (roomId: string) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if (!roomSnap.exists()) {
+        throw new Error("Room not found");
+    }
+
+    return roomSnap.data();
+};
+
+// Update room data
 export const updateRoom = async (roomId: string, roomData: Partial<Room>) => {
     const roomRef = doc(db, 'rooms', roomId);
     await updateDoc(roomRef, roomData);
 };
 
+// Check if a player is in a room
+export const isPlayerInRoom = async (roomId: string, playerId: string) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if (!roomSnap.exists()) {
+        throw new Error("Room not found");
+    }
+
+    const roomData = roomSnap.data();
+    const players = roomData.players || [];
+    const playerInRoom = players.some((p: string) => p === playerId);
+
+    return playerInRoom;
+};
+
+// Add a player to a room
 export const addPlayerToRoom = async (roomId: string, playerId: string) => {
     const roomRef = doc(db, 'rooms', roomId);
     const roomSnap = await getDoc(roomRef);
@@ -58,13 +89,13 @@ export const addPlayerToRoom = async (roomId: string, playerId: string) => {
 
     console.log("Adding player to room:", roomId, playerId);
 
-    //Update the room with the player
     await updateDoc(roomRef, {
         createdBy: roomData.createdBy === "anonymous" ? playerId : roomData.createdBy,
         players: arrayUnion(playerId),
     });
 };
 
+// Remove a player from a room
 export const removePlayerFromRoom = async (roomId: string, playerId: string) => {
     const roomRef = doc(db, 'rooms', roomId);
     const roomSnap = await getDoc(roomRef);
@@ -81,38 +112,12 @@ export const removePlayerFromRoom = async (roomId: string, playerId: string) => 
         return;
     }
 
-    //Remove the player from the room
     await updateDoc(roomRef, {
         players: playersInRoom.filter((p: string) => p !== playerId),
     });
-}
+};
 
-export const isPlayerInRoom = async (roomId: string, playerId: string) => {
-    const roomRef = doc(db, 'rooms', roomId);
-    const roomSnap = await getDoc(roomRef);
-
-    if (!roomSnap.exists()) {
-        throw new Error("Room not found");
-    }
-
-    const roomData = roomSnap.data();
-    const players = roomData.players || [];
-    const playerInRoom = players.some((p: string) => p === playerId);
-
-    return playerInRoom;
-}
-
-export const getRoom = async (roomId: string) => {
-    const roomRef = doc(db, 'rooms', roomId);
-    const roomSnap = await getDoc(roomRef);
-
-    if (!roomSnap.exists()) {
-        throw new Error("Room not found");
-    }
-
-    return roomSnap.data();
-}
-
+// Get previous rooms a player has participated in
 export const getPreviousRooms = async (playerId: string) => {
     const q = query(
         collectionGroup(db, "rooms"),
@@ -132,4 +137,4 @@ export const getPreviousRooms = async (playerId: string) => {
     });
 
     return rooms;
-}
+};

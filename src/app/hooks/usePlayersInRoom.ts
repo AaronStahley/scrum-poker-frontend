@@ -53,7 +53,11 @@ export function usePlayersInRoom(roomId: string) {
         const chunks = chunkArray(playerIds, 10);
 
         for (const chunk of chunks) {
-          const q = query(collection(db, 'players'), where('__name__', 'in', chunk));
+            const q = query(
+            collection(db, 'players'),
+            where('__name__', 'in', chunk),
+            where('currentRoom', '==', roomId)
+            );
           const unsubscribe = onSnapshot(q, (snapshot) => {
             const updatedPlayers = snapshot.docs.map((doc) => ({
               ...(doc.data() as Player),

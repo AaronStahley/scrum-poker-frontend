@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/auth";
 import { useEffect } from "react";
 import { addPlayerToRoom, isPlayerInRoom } from "@/lib/firebase/room";
-import { addRoomToPlayer, createPlayer, playerExists } from "@/lib/firebase/player";
+import { createPlayer, playerExists, updatePlayer } from "@/lib/firebase/player";
 
 type UseJoinRoomOptions = {
   autoJoinRoomId?: string | null;
@@ -42,7 +42,7 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
 
       await Promise.all([
         addPlayerToRoom(roomId, player.uid),
-        addRoomToPlayer(player.uid, roomId),
+        updatePlayer(player.uid, {currentRoom: roomId})
       ]);
       router.push(`/room/${roomId}`);
     } catch (error) {
