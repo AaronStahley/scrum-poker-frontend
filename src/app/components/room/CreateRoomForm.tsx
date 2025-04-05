@@ -30,7 +30,7 @@ const CreateRoom = () => {
         <input
           type="text"
           placeholder="Enter Room Name"
-          className={`input input-bordered min-w-64`}
+          className={`input input-bordered min-w-64 text-base`}
           value={roomName}
           onChange={(e) => setRoomName(e.target.value)}
           required
@@ -39,7 +39,7 @@ const CreateRoom = () => {
         />
         <button
           type="submit"
-          className="btn btn-primary min-w-30"
+          className="btn btn-primary min-w-34 text-base"
         >
           Create Room
         </button>

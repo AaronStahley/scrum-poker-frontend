@@ -52,9 +52,9 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId,
 
   return (
     <div className="w-full max-w-4xl mx-auto overflow-x-auto rounded-lg">
-      <table className="table w-full border border-base-300">
+      <table className="table w-full border border-base-300 text-base">
         <thead>
-          <tr className="bg-primary text-primary-content">
+          <tr className="bg-primary text-primary-content text-base">
             <th className="text-left p-0">
               <button onClick={cycleSort} className="flex items-center justify-between w-full h-full p-3">
               <span>Player</span>
