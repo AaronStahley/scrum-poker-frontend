@@ -1,5 +1,3 @@
-import { Player } from './player';
-
 export interface Room {
     id: string;
     createdAt: Date;

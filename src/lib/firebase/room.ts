@@ -126,7 +126,7 @@ export const getPreviousRooms = async (playerId: string) => {
 
     const snapshot = await getDocs(q);
 
-    const rooms: any = [];
+    const rooms: Room[] = [];
 
     snapshot.forEach((doc) => {
         const roomData = doc.data();

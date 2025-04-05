@@ -15,8 +15,8 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const [revealVotes, setRevealVotes] = useState(false);
   const [resetCardSelector, setResetCardSelector] = useState(false);
   const {} = useJoinRoom({autoJoinRoomId: roomId});
-  const { players, loading: loadingPlayers, error: playerError } = usePlayersInRoom(roomId);
-  const { room, loading: loadingRoom, error: roomError } = useCurrentRoom(roomId);
+  const { players, loading: loadingPlayers } = usePlayersInRoom(roomId);
+  const { room, loading: loadingRoom } = useCurrentRoom(roomId);
 
   const updatePlayerSelection = async (playerId: string, selection: string | number) => {
     setResetCardSelector(false);

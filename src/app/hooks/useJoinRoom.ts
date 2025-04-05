@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/auth";
 import { useEffect } from "react";
-import { addPlayerToRoom, isPlayerInRoom } from "@/lib/firebase/room";
+import { addPlayerToRoom } from "@/lib/firebase/room";
 import { createPlayer, playerExists, updatePlayer } from "@/lib/firebase/player";
 
 type UseJoinRoomOptions = {

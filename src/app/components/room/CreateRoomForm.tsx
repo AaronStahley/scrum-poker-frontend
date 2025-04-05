@@ -8,7 +8,7 @@ import { useAuth } from "@/app/contexts/auth";
 const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
   const { joinRoom } = useJoinRoom();
-  const { player, loading } = useAuth();
+  const { player } = useAuth();
       
   const handleCreateNewRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
