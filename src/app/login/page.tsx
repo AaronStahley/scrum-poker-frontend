@@ -33,7 +33,7 @@ const LoginPage = () => {
         <input 
           type="email" 
           placeholder="Email" 
-          className="input input-bordered w-full"
+          className="input input-bordered w-full text-base"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required 
@@ -42,13 +42,13 @@ const LoginPage = () => {
         <input 
           type="password" 
           placeholder="Password" 
-          className="input input-bordered w-full"
+          className="input input-bordered w-full text-base"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required 
         />
 
-        <button type="submit" className="btn btn-primary w-full">Log In</button>
+        <button type="submit" className="btn btn-primary w-full text-base">Log In</button>
       </form>
     </div>
   )

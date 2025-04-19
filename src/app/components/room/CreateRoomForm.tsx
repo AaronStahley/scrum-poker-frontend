@@ -4,11 +4,12 @@ import { useState } from "react";
 import useJoinRoom from "@/app/hooks/useJoinRoom";
 import { createRoom } from "@/lib/firebase/room";
 import { useAuth } from "@/app/contexts/auth";
+import LoadOverlay from "@/app/components/loading/LoadingOverlay";
 
 const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
-  const { joinRoom } = useJoinRoom();
-  const { player } = useAuth();
+  const { joinRoom, loadingRoom, isPending } = useJoinRoom();
+  const { player, loading: playerLoading } = useAuth();
       
   const handleCreateNewRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +27,7 @@ const CreateRoom = () => {
 
   return (
     <>
+      {(playerLoading || loadingRoom || isPending) && <LoadOverlay />}
       <form onSubmit={handleCreateNewRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
         <input
           type="text"

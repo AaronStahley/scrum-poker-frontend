@@ -97,7 +97,7 @@ const SignUpPage = () => {
         <input 
             type="text" 
             placeholder="Display Name" 
-            className="input input-bordered w-full"
+            className="input input-bordered w-full text-base"
             name="displayName"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -107,7 +107,7 @@ const SignUpPage = () => {
         <input 
             type="email" 
             placeholder="Email" 
-            className="input input-bordered w-full"
+            className="input input-bordered w-full text-base"
             name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -117,7 +117,7 @@ const SignUpPage = () => {
         <input 
             type="password" 
             placeholder="Password"
-            className="input input-bordered w-full"
+            className="input input-bordered w-full text-base"
             name="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -125,7 +125,7 @@ const SignUpPage = () => {
             minLength={6}
             required
         />
-        <button type="submit" className="btn btn-primary w-full">Sign Up</button>
+        <button type="submit" className="btn btn-primary w-full text-base">Sign Up</button>
       </form>
     </div>
   );

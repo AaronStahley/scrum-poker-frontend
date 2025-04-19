@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/auth";
-import { useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { addPlayerToRoom } from "@/lib/firebase/room";
 import { createPlayer, playerExists, updatePlayer } from "@/lib/firebase/player";
 
@@ -9,6 +9,9 @@ type UseJoinRoomOptions = {
 };
 
 const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
+  const [loadingRoom, setLoadingRoom] = useState(false)
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState(<string | null>(null));
   const router = useRouter();
   const { 
     player, 
@@ -35,6 +38,7 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
     }
 
     try {
+      setLoadingRoom(true);
       const playerExistsInDb = await playerExists(player.uid);
       if (!playerExistsInDb) {
         await createPlayer(player.uid, player.displayName);
@@ -44,9 +48,19 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
         addPlayerToRoom(roomId, player.uid),
         updatePlayer(player.uid, {currentRoom: roomId, lastJoinedAt: new Date()}),
       ]);
-      router.push(`/room/${roomId}`);
+
+      startTransition(() => {
+        router.push(`/room/${roomId}`);
+      });
     } catch (error) {
       console.error("Error joining room:", error);
+      if (error instanceof Error) {
+        setError(error.message || "An error occurred while joining the room.");
+      } else {
+        setError("An error occurred while joining the room.");
+      }
+    } finally {
+      setLoadingRoom(false);
     }
   };
 
@@ -63,7 +77,7 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
     }
   }, [autoJoinRoomId, loading, playerCreated, pendingRoomId, setPendingRoomId]);
 
-  return { joinRoom };
+  return { joinRoom, loadingRoom, isPending, error };
 };
 
 export default useJoinRoom;

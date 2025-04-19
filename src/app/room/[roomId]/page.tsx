@@ -1,7 +1,6 @@
-import { db } from "@/lib/firebase/firebase";
-import { getDoc, doc } from "firebase/firestore";
 import RoomClient from '@/app/components/room/RoomClient';
 import RoomNotFound from "@/app/components/room/RoomNotFound";
+import { getRoom } from "@/lib/firebase/room";
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -10,11 +9,7 @@ interface PageProps {
 const RoomPage = async ({ params }: PageProps) => {
   const resolvedParams = await params;
   const { roomId } = resolvedParams;
-
-  // Fetch room details from Firestore
-  const roomRef = doc(db, "rooms", roomId);
-  const roomSnap = await getDoc(roomRef);
-  const roomData = roomSnap.exists() ? roomSnap.data() : null;
+  const roomData = await getRoom(roomId);
 
   if (!roomData) {
     return (<div className="text-center text-error"><RoomNotFound /></div>); 

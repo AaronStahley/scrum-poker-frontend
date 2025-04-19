@@ -9,7 +9,6 @@ interface PlayerTableProps {
   players: Player[];
   revealVotes: boolean;
   removePlayer: (playerName: string) => void;
-  // editPlayer: (playerName: string) => void; //TODO: Implement edit player
 }
 
 type SortDirection = 'asc' | 'desc' | 'none';
@@ -49,6 +48,44 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId,
   useEffect(() => {
     setSortePlayers(applySort(players, sortDirection));
   }, [players, sortDirection]);
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
+  if (isLoading || !players || players.length === 0) {
+    const length = 3;
+    return (
+      <table className="table w-full max-w-4xl mx-auto overflow-x-auto rounded-lg">
+        <thead>
+          <tr>
+            {Array.from({ length: length }).map((_, index) => (
+              <th key={index}>
+                <div className="skeleton h-5 w-24"></div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: length }).map((_, index) => (
+            <tr key={index}>
+              {Array.from({ length: length }).map((_, cellIndex) => (
+                <td key={cellIndex}>
+                  <div className="skeleton h-5 w-full"></div>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto overflow-x-auto rounded-lg">
@@ -90,14 +127,6 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId,
                   <TrashIcon className="h-5 w-5" />
                   </button>
                 )}
-                {/* {player.id === currentPlayerId && (
-                  <button
-                  className="btn btn-sm btn-danger text-white"
-                  onClick={() => removePlayer(player.name)}
-                  >
-                  <PencilIcon className="h-5 w-5" />
-                  </button>
-                )} */}
                 </td>
             </tr>
           ))}

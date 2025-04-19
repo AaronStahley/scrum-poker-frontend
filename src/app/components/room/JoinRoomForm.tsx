@@ -6,23 +6,30 @@ import { XCircleIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 import { getPreviousRooms } from "@/lib/firebase/room";
 import { useAuth } from "@/app/contexts/auth";
 import { Room } from "@/types/room";
+import  LoadOverlay from "@/app/components/loading/LoadingOverlay";
 
 const JoinRoom = () => {
   const [roomId, setRoomId] = useState("");
-  const { joinRoom } = useJoinRoom();
+  const { joinRoom, loadingRoom, isPending, error: joinRoomError } = useJoinRoom();
   const [error, setError] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [previousRooms, setPreviousRooms] = useState<Room[]>([]);
-  const { player, loading } = useAuth();
+  const { player, loading: playerLoading } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (loading || !player) return;
+    if (!player) { 
+      setRoomId("");
+      setPreviousRooms([]);
+      return;
+    }
 
+    if (playerLoading || !player) return;
+    
     getPreviousRooms(player.uid).then(setPreviousRooms).catch((error) => {
       console.error("Error fetching previous rooms:", error);
     });
-  }, [loading, player]);
+  }, [playerLoading, player]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -37,12 +44,7 @@ const JoinRoom = () => {
   const handleJoinRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    try {
-      await joinRoom(roomId);
-    } catch (err) {
-      setError("Room does not exist");
-      console.error("Error joining room:", err);
-    }
+    await joinRoom(roomId)
   };
 
   const handleSelect = (id: string) => {
@@ -52,6 +54,7 @@ const JoinRoom = () => {
 
   return (
     <>
+      {(playerLoading || loadingRoom || isPending) && <LoadOverlay />}
       <form onSubmit={handleJoinRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
         <div className="relative min-w-64" ref={dropdownRef}>
           <label className="input input-bordered flex items-center gap-2 w-full">
@@ -95,10 +98,10 @@ const JoinRoom = () => {
         </button>
       </form>
 
-      {error && (
-        <div role="alert" className="alert alert-error rounded-md mt-2">
+      {(joinRoomError) && (
+        <div key={joinRoomError} role="alert" className="alert alert-error rounded-md mt-2">
           <XCircleIcon className="h-6 w-6" />
-          <span>{error}</span>
+          <span>{joinRoomError}</span>
         </div>
       )}
     </>

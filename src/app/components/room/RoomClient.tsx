@@ -47,8 +47,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
     }
   }, [room, players]);
 
-  if (loadingPlayerAuth || loadingRoom || loadingPlayers) return <p>Loading players...</p>;
-
+  
   return (
     <div>
     <PlayingCardSelector reset={resetCardSelector} playerId={playerAuth?.uid} onSelect={updatePlayerSelection} />
@@ -56,16 +55,14 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
       <button className="text-base btn btn-primary" onClick={handlRevealVotes}>Reveal Votes</button>
       <button className="text-base btn btn-secondary" onClick={resetVotes}>Reset Votes</button>
     </div>
-    {playerAuth && players &&(
       <PlayerTable 
         initislSortDirection="asc"
         roomOwnerId={room?.createdBy}
-        currentPlayerId={playerAuth.uid}
+        currentPlayerId={playerAuth?.uid ?? null}
         players={players}
         revealVotes={revealVotes}
         removePlayer={removePlayer} 
       />
-    )}
     </div>
   );
 };
