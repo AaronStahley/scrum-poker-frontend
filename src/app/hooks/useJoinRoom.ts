@@ -42,7 +42,7 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
 
       await Promise.all([
         addPlayerToRoom(roomId, player.uid),
-        updatePlayer(player.uid, {currentRoom: roomId})
+        updatePlayer(player.uid, {currentRoom: roomId, lastJoinedAt: new Date()}),
       ]);
       router.push(`/room/${roomId}`);
     } catch (error) {

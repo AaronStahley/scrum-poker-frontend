@@ -24,8 +24,8 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   };
 
   const resetVotes = async () => {
-    await updateRoom(roomId, { status: "waiting" });
     await updatePlayers(roomId, { selection: null });
+    await updateRoom(roomId, { status: "waiting" });
   };
 
   const handlRevealVotes = async () => {

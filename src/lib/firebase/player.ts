@@ -33,7 +33,7 @@ export const getPlayer = async (playerId: string) => {
 
 // Create a new player
 export const createPlayer = async (playerId: string, playerName: string) => {
-    const newPlayer: Player = {
+    const newPlayer:  Partial<Player> = {
         id: playerId,
         name: playerName,
         currentRoom: null,

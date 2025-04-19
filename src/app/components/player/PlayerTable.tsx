@@ -62,7 +62,6 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId,
               </button>
             </th>
             <th className="text-left">Selection</th>
-            <th className="text-left">Has Voted?</th>
             <th className="text-left">Actions</th>
           </tr>
         </thead>
@@ -73,20 +72,15 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId,
                 {/* <div aria-label="status" className="status status-success mr-3"></div> */}
                 {player.name}
               </td>
-              <td className="p-3">
-                {revealVotes ? (
-                  <span className="font-bold">{player.selection ?? "?"}</span>
-                ) : (
-                  <span className="text-secondary">🔒 Hidden</span>
-                )}
-              </td>
-              <td>
-                {player.selection !== null && player.selection !== undefined ? (
-                  <span className="text-green-500">✅</span>
-                ) : (
-                  <span className="text-red-500">❌</span>
-                )}
-              </td>
+                <td className="p-3">
+                  {player.selection === null || player.selection === undefined ? (
+                  <span className="text-primary-content">-</span>
+                  ) : revealVotes ? (
+                  <span className="font-bold">{player.selection}</span>
+                  ) : (
+                  <span className="text-secondary">🔒</span>
+                  )}
+                </td>
               <td className="p-1">
                 {roomOwnerId != player.id && player.id !== currentPlayerId && (
                   <button
