@@ -1,0 +1,50 @@
+"use client"
+
+import React from 'react'
+import Link from 'next/link'
+import { Bars3Icon } from '@heroicons/react/20/solid'
+import { useAuth } from '@/app/contexts/auth'
+import PlayerNavDropdown from './PlayerNavDropdown'
+
+const TopNavBarRight = () => {
+  const { player, loading } = useAuth();
+
+  if(loading) return null;
+
+  if(!player || player.isAnonymous)  return (
+    <div>
+      <div className="hidden sm:flex gap-2">
+        <Link href="/signup" className="btn bg-primary btn-ghost text-base">Sign Up</Link>
+        <Link href="/login" className="btn btn-ghost text-base">Login</Link>
+      </div>
+      <div className="sm:hidden">
+        <div className="dropdown dropdown-end">
+          <label tabIndex={0} className="btn btn-ghost btn-circle">
+            <button className="btn btn-square btn-ghost">
+                <Bars3Icon className="h-6 w-6" />
+            </button>
+          </label>
+          <ul
+            tabIndex={0}
+            className="menu dropdown-content bg-base-100 rounded-box z-50 mt-3 w-40 p-2 shadow"
+          >
+            <li>
+              <Link className="text-base" href="/signup">Sign Up</Link>
+            </li>
+            <li>
+              <Link className="text-base" href="/login">Login</Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="sm:flex gap-2">
+      <PlayerNavDropdown />
+    </div>
+  )
+}
+
+export default TopNavBarRight
