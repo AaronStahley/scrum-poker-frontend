@@ -11,12 +11,12 @@ import { usePlayersInRoom } from "@/app/hooks/usePlayersInRoom";
 import { useCurrentRoom } from "@/app/hooks/useCurrentRoom";
 
 const RoomClient = ({ roomId }: { roomId: string }) => {
-  const { player: playerAuth, loading: loadingPlayerAuth } = useAuth();
+  const { player: playerAuth } = useAuth();
   const [revealVotes, setRevealVotes] = useState(false);
   const [resetCardSelector, setResetCardSelector] = useState(false);
   const {} = useJoinRoom({autoJoinRoomId: roomId});
-  const { players, loading: loadingPlayers } = usePlayersInRoom(roomId);
-  const { room, loading: loadingRoom } = useCurrentRoom(roomId);
+  const { players } = usePlayersInRoom(roomId);
+  const { room } = useCurrentRoom(roomId);
 
   const updatePlayerSelection = async (playerId: string, selection: string | number) => {
     setResetCardSelector(false);

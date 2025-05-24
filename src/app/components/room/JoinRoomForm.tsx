@@ -11,7 +11,6 @@ import  LoadOverlay from "@/app/components/loading/LoadingOverlay";
 const JoinRoom = () => {
   const [roomId, setRoomId] = useState("");
   const { joinRoom, loadingRoom, isPending, error: joinRoomError } = useJoinRoom();
-  const [error, setError] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [previousRooms, setPreviousRooms] = useState<Room[]>([]);
   const { player, loading: playerLoading } = useAuth();
@@ -43,7 +42,6 @@ const JoinRoom = () => {
 
   const handleJoinRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     await joinRoom(roomId)
   };
 
