@@ -1,49 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import { db } from "@/lib/firebase/firebase";
-import { collection, addDoc } from "firebase/firestore";
-import { Room } from "../../../types/room";
-import useJoinRoom from "@/app/hooks/JoinRoom";
+import useJoinRoom from "@/app/hooks/useJoinRoom";
+import { createRoom } from "@/lib/firebase/room";
+import { useAuth } from "@/app/contexts/auth";
+import LoadOverlay from "@/app/components/loading/LoadingOverlay";
 
 const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
-  const { joinRoom } = useJoinRoom();
-
-  const createRoom = async () => {
-    try {
-      const newRoom: Room = {
-        createdAt: new Date(),
-        createdBy: "anonymous",
-        name: roomName,
-        status: "waiting",
-        players: [],
-      };
-
-      const roomRef = await addDoc(collection(db, "rooms"), newRoom);
-      console.log("Room created successfully:", roomRef.id);
-      joinRoom(roomRef.id);
-    } catch (error) {
-      console.error("Error creating room:", error);
-    }
-  };
-
-  const handleCreateNewRoomSubmit = (e: React.FormEvent) => {
+  const { joinRoom, loadingRoom, isPending } = useJoinRoom();
+  const { player, loading: playerLoading } = useAuth();
+      
+  const handleCreateNewRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const form = e.target as HTMLFormElement;
     if (form.checkValidity()) {
-      createRoom();
+      try { 
+        const roomId = await createRoom(roomName, player?.uid);
+        await joinRoom(roomId);
+      }catch (error) {
+        console.error("Error creating room:", error);
+      }
     }
   };
 
   return (
     <>
+      {(playerLoading || loadingRoom || isPending) && <LoadOverlay />}
       <form onSubmit={handleCreateNewRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
         <input
           type="text"
           placeholder="Enter Room Name"
-          className={`input input-bordered min-w-64`}
+          className={`input input-bordered min-w-64 text-base`}
           value={roomName}
           onChange={(e) => setRoomName(e.target.value)}
           required
@@ -52,7 +41,7 @@ const CreateRoom = () => {
         />
         <button
           type="submit"
-          className="btn btn-primary min-w-30"
+          className="btn btn-primary min-w-34 text-base"
         >
           Create Room
         </button>

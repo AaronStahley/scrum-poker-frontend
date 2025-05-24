@@ -14,8 +14,8 @@ const TopNavBarRight = () => {
   if(!player || player.isAnonymous)  return (
     <div>
       <div className="hidden sm:flex gap-2">
-        <Link href="/signup" className="btn bg-primary btn-ghost">Sign Up</Link>
-        <Link href="/login" className="btn btn-ghost">Login</Link>
+        <Link href="/signup" className="btn bg-primary btn-ghost text-base">Sign Up</Link>
+        <Link href="/login" className="btn btn-ghost text-base">Login</Link>
       </div>
       <div className="sm:hidden">
         <div className="dropdown dropdown-end">
@@ -29,10 +29,10 @@ const TopNavBarRight = () => {
             className="menu dropdown-content bg-base-100 rounded-box z-50 mt-3 w-40 p-2 shadow"
           >
             <li>
-              <Link href="/signup">Sign Up</Link>
+              <Link className="text-base" href="/signup">Sign Up</Link>
             </li>
             <li>
-              <Link href="/login">Login</Link>
+              <Link className="text-base" href="/login">Login</Link>
             </li>
           </ul>
         </div>
