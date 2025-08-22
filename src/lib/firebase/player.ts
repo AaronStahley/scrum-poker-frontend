@@ -60,8 +60,12 @@ export const updatePlayers = async (roomId: string, playerData: Partial<Player>)
     const q = query(playersRef, where('currentRoom', '==', roomId));
     const querySnap = await getDocs(q);
 
-    querySnap.forEach(async (doc) => {
+    // Use Promise.all to ensure all updates complete before resolving
+    // This prevents race conditions from concurrent calls
+    const updatePromises = querySnap.docs.map(async (doc) => {
         console.log("Updating player:", doc.id, playerData);
-        await updateDoc(doc.ref, playerData);
+        return updateDoc(doc.ref, playerData);
     });
+
+    await Promise.all(updatePromises);
 };

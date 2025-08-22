@@ -14,10 +14,16 @@ const PlayingCardSelector: React.FC<PlayingCardSelectorProps> = ({ playerId, onS
   const [selectedValue, setSelectedValue] = useState<number | string | null>(null);
 
   const handleSelect = (value: number | string) => {
-    if (playerId) {
-      setSelectedValue(value);
-      onSelect(playerId, value);
+    if (!playerId) {
+      console.error('PlayingCardSelector: No playerId provided');
+      return;
     }
+    
+    // Optimistic update - immediately show the selection
+    setSelectedValue(value);
+    
+    // Call the debounced callback
+    onSelect(playerId, value);
   };
 
   useEffect(() => {
