@@ -4,6 +4,7 @@ import "./globals.css";
 import TopNavBar from "./components/nav/TopNavBar";
 import AuthProviderWrapper from "../app/components/auth/AuthProviderWrapper";
 import NewPlayerModal from "./components/player/NewPlayerModal";
+import ErrorBoundary from "./components/error/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +32,11 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base-200`}
         >
           <AuthProviderWrapper>
-            <TopNavBar />
-            <NewPlayerModal />
-            <main className="container mx-auto px-4 py-4">{children}</main>
+            <ErrorBoundary>
+              <TopNavBar />
+              <NewPlayerModal />
+              <main className="container mx-auto px-4 py-4">{children}</main>
+            </ErrorBoundary>
           </AuthProviderWrapper>
         </body>
       </html>

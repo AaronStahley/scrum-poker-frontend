@@ -5,6 +5,7 @@ import Link from "next/link";
 import { auth } from "@/lib/firebase/firebase"; 
 import { signOut } from "firebase/auth";
 import { UserIcon, ArrowLeftStartOnRectangleIcon } from  "@heroicons/react/20/solid";
+import { getVersionDisplay } from "@/lib/version";
 
 const PlayerNavDropdown = () => {
 
@@ -35,6 +36,12 @@ const PlayerNavDropdown = () => {
                 <ArrowLeftStartOnRectangleIcon className="h-8 w-8 pr-1" />
                 Logout
               </Link>
+            </li>
+            <div className="divider my-1"></div>
+            <li className="disabled">
+              <span className="text-xs text-base-content/60 cursor-default">
+                {getVersionDisplay()}
+              </span>
             </li>
         </ul>
     </div>
