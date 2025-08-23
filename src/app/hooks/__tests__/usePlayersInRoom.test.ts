@@ -149,18 +149,22 @@ describe('usePlayersInRoom', () => {
 
   it('should handle room not existing', async () => {
     const roomId = 'nonexistent-room'
-    let roomCallback: (snapshot: any) => void
+    let roomCallback: (snapshot: firestore.DocumentSnapshot) => void
 
     mockOnSnapshot.mockImplementation((ref, callback) => {
-      roomCallback = callback
+      // Use same logic as other tests to avoid interference
+      if (typeof callback === 'function') {
+        roomCallback = callback as (snapshot: firestore.DocumentSnapshot) => void
+      }
       return vi.fn()
     })
 
     const { result } = renderHook(() => usePlayersInRoom(roomId))
 
     roomCallback!({
-      exists: () => false
-    })
+      exists: () => false,
+      data: () => undefined
+    } as firestore.DocumentSnapshot)
 
     await waitFor(() => {
       expect(result.current.error?.message).toBe('Room does not exist')
@@ -174,8 +178,8 @@ describe('usePlayersInRoom', () => {
     let errorCallback: (error: Error) => void
 
     mockOnSnapshot.mockImplementation((ref, callback, onError) => {
-      if (onError) {
-        errorCallback = onError
+      if (typeof onError === 'function') {
+        errorCallback = onError as (error: Error) => void
       }
       return vi.fn()
     })

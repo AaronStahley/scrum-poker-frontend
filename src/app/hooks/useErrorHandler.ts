@@ -24,9 +24,9 @@ export const useErrorHandler = (): UseErrorHandlerReturn => {
 
   const withErrorHandling = useCallback(
     <T extends (...args: never[]) => Promise<unknown>>(fn: T) => {
-      return async (...args: Parameters<T>): Promise<ReturnType<T> | void> => {
+      return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>> | void> => {
         try {
-          return await fn(...args)
+          return await fn(...args) as Awaited<ReturnType<T>>
         } catch (error) {
           showError(error instanceof Error ? error : new Error(String(error)))
         }

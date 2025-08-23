@@ -49,7 +49,7 @@ describe('Multi-User Integration Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseJoinRoom.mockReturnValue({} as any)
+    mockUseJoinRoom.mockReturnValue({} as ReturnType<typeof useJoinRoom.default>)
     mockUseCurrentRoom.mockReturnValue({
       room: mockRoom,
       loading: false,
@@ -84,7 +84,7 @@ describe('Multi-User Integration Tests', () => {
     ]
 
     const components = users.map(user => {
-      mockUseAuth.mockReturnValue({ player: user.player } as any)
+      mockUseAuth.mockReturnValue({ player: user.player } as ReturnType<typeof authContext.useAuth>)
       return render(<RoomClient roomId={roomId} />)
     })
 
@@ -112,7 +112,7 @@ describe('Multi-User Integration Tests', () => {
     // Player 1 tries to update Player 2's selection (should be blocked)
     mockUseAuth.mockReturnValue({ 
       player: createMockPlayer('player1', 'User 1') 
-    } as any)
+    } as ReturnType<typeof authContext.useAuth>)
 
     mockUsePlayersInRoom.mockReturnValue({
       players: [
@@ -140,7 +140,7 @@ describe('Multi-User Integration Tests', () => {
 
   it('should handle rapid successive updates without data loss', async () => {
     const player = createMockPlayer('player1', 'User 1')
-    mockUseAuth.mockReturnValue({ player } as any)
+    mockUseAuth.mockReturnValue({ player } as ReturnType<typeof authContext.useAuth>)
 
     mockUsePlayersInRoom.mockReturnValue({
       players: [createMockPlayerData('player1', 'User 1')],
@@ -176,7 +176,7 @@ describe('Multi-User Integration Tests', () => {
 
     mockUseAuth.mockReturnValue({ 
       player: createMockPlayer('player1', 'User 1') 
-    } as any)
+    } as ReturnType<typeof authContext.useAuth>)
 
     mockUsePlayersInRoom.mockReturnValue({
       players,
@@ -211,7 +211,7 @@ describe('Multi-User Integration Tests', () => {
 
     mockUseAuth.mockReturnValue({ 
       player: createMockPlayer('player1', 'User 1') 
-    } as any)
+    } as ReturnType<typeof authContext.useAuth>)
 
     const { rerender } = render(<RoomClient roomId={roomId} />)
 
