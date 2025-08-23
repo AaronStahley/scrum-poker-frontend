@@ -1,6 +1,6 @@
 # Changelog
 
-## [Multi-User Bug Fixes] - 2024-08-22
+## [1.0.0] - 2024-08-23
 
 ### 🔧 Critical Bug Fixes
 
