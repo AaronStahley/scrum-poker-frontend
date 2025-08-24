@@ -4,12 +4,20 @@ import React from 'react'
 import Link from "next/link";
 import { auth } from "@/lib/firebase/firebase"; 
 import { signOut } from "firebase/auth";
-import { UserIcon, ArrowLeftStartOnRectangleIcon } from  "@heroicons/react/20/solid";
+import { UserIcon, ArrowLeftStartOnRectangleIcon, Cog6ToothIcon } from  "@heroicons/react/20/solid";
 import { getVersionDisplay } from "@/lib/version";
 
 const PlayerNavDropdown = () => {
 
+  const handleLinkClick = () => {
+    // Close dropdown by removing focus from active element
+    if (document.activeElement) {
+      (document.activeElement as HTMLElement).blur();
+    }
+  };
+
   const handleLogout = async () => {
+    handleLinkClick(); // Close dropdown first
     try {
       await signOut(auth);
       console.log("User logged out");
@@ -28,9 +36,13 @@ const PlayerNavDropdown = () => {
         <ul
             tabIndex={0}
             className="menu dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-            {/* <li><Link href="/profile" className="justify-between">Edit Profile<span className="badge">New</span></Link></li> */}
-            {/* <li><Link href="/settings">Settings</Link></li> */}
-            {/* <li><Link href="/settings">Display</Link></li> */}
+            <li>
+              <Link href="/settings" onClick={handleLinkClick}>
+                <Cog6ToothIcon className="h-8 w-8 pr-1" />
+                Settings
+              </Link>
+            </li>
+            <div className="divider my-1"></div>
             <li>
               <Link href="/" onClick={handleLogout}>
                 <ArrowLeftStartOnRectangleIcon className="h-8 w-8 pr-1" />

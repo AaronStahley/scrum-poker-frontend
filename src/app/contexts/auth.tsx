@@ -9,7 +9,10 @@ import {
   EmailAuthProvider, 
   linkWithCredential,
   signInAnonymously,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail,
+  updatePassword,
+  reauthenticateWithCredential
 } from "firebase/auth";
 
 interface AuthContextType {
@@ -24,6 +27,8 @@ interface AuthContextType {
   playerCreated: boolean;
   pendingRoomId: string | null;
   setPendingRoomId: (roomId: string | null) => void;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
+  updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -83,6 +88,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error(errorMessage);
     }
   }
+
+  const sendPasswordResetEmailToUser = async (email: string) => {
+    try {
+      setLoading(true);
+      await sendPasswordResetEmail(auth, email);
+    } catch (err: unknown) {
+      const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to send password reset email";
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUserPassword = async (currentPassword: string, newPassword: string) => {
+    if (!player) {
+      throw new Error("No user is currently logged in");
+    }
+
+    try {
+      setLoading(true);
+      
+      // Re-authenticate the user with their current password
+      const credential = EmailAuthProvider.credential(player.email!, currentPassword);
+      await reauthenticateWithCredential(player, credential);
+      
+      // Update to the new password
+      await updatePassword(player, newPassword);
+      
+    } catch (err: unknown) {
+      const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to update password";
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return (
     <AuthContext.Provider value={{ 
@@ -96,7 +136,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setPlayerCreated, 
       playerCreated, 
       pendingRoomId, 
-      setPendingRoomId 
+      setPendingRoomId,
+      sendPasswordResetEmail: sendPasswordResetEmailToUser,
+      updateUserPassword
     }}>
       {children}
     </AuthContext.Provider>

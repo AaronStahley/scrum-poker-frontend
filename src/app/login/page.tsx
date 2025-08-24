@@ -4,6 +4,7 @@ import { useState } from "react";
 import { auth } from "@/lib/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { firebaseErrorMessages } from "@/lib/firebase/firebaseErrorMessages";
 
 const LoginPage = () => {
@@ -50,6 +51,12 @@ const LoginPage = () => {
 
         <button type="submit" className="btn btn-primary w-full text-base">Log In</button>
       </form>
+
+      <div className="mt-4 text-center">
+        <Link href="/forgot-password" className="btn btn-ghost btn-sm">
+          Forgot Password?
+        </Link>
+      </div>
     </div>
   )
 }
