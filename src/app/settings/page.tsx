@@ -69,8 +69,8 @@ const SettingsPage = () => {
                 />
               </div>
               <div className="text-sm text-base-content/60">
-                <p>Account created: {new Date(player.metadata.creationTime || "").toLocaleDateString()}</p>
-                <p>Last sign in: {new Date(player.metadata.lastSignInTime || "").toLocaleDateString()}</p>
+                <p>Account created: {player.metadata.creationTime ? new Date(player.metadata.creationTime).toLocaleDateString() : "Unknown"}</p>
+                <p>Last sign in: {player.metadata.lastSignInTime ? new Date(player.metadata.lastSignInTime).toLocaleDateString() : "Unknown"}</p>
               </div>
             </div>
           </div>
@@ -80,28 +80,6 @@ const SettingsPage = () => {
         <ChangePasswordForm />
       </div>
 
-      {/* Placeholder for future settings sections */}
-      <div className="mt-8 opacity-50">
-        <h2 className="text-2xl font-semibold mb-4 text-base-content/50">Coming Soon</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="card bg-base-100 border border-base-300 border-dashed">
-            <div className="card-body">
-              <h3 className="card-title text-lg text-base-content/50">Notifications</h3>
-              <p className="text-base-content/40">
-                Configure email and push notification preferences
-              </p>
-            </div>
-          </div>
-          <div className="card bg-base-100 border border-base-300 border-dashed">
-            <div className="card-body">
-              <h3 className="card-title text-lg text-base-content/50">Privacy</h3>
-              <p className="text-base-content/40">
-                Manage your privacy and data sharing settings
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

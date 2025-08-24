@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../contexts/auth";
 import { getFirebaseNoReplyEmail } from "@/lib/firebase/firebase";
@@ -12,7 +11,6 @@ const ForgotPasswordPage = () => {
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { sendPasswordResetEmail } = useAuth();
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,11 +20,6 @@ const ForgotPasswordPage = () => {
     try {
       await sendPasswordResetEmail(email);
       setSuccess(true);
-      
-      // Redirect to login page after 3 seconds
-      setTimeout(() => {
-        router.push("/login");
-      }, 3000);
     } catch (err: unknown) {
       setError((err as Error).message);
     } finally {
@@ -54,7 +47,6 @@ const ForgotPasswordPage = () => {
           <span>Password reset email sent! Check your inbox and spam folder.</span>
         </div>
         <div className="text-sm text-base-content/70 mt-4 max-w-md">
-          <p className="mb-2">Redirecting to login page...</p>
           <p className="text-xs">
             💡 <strong>Tip:</strong> If you don&apos;t see the email, check your spam/junk folder. 
             Add {getFirebaseNoReplyEmail()} to your contacts to prevent this in future.
