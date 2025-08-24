@@ -7,6 +7,7 @@ vi.mock('@/lib/firebase/firebase', () => ({
   auth: {
     currentUser: null,
   },
+  getFirebaseNoReplyEmail: vi.fn(() => 'noreply@test.firebaseapp.com'),
 }))
 
 // Mock Firebase functions

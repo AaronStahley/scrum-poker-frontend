@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../contexts/auth";
+import { getFirebaseNoReplyEmail } from "@/lib/firebase/firebase";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -56,7 +57,7 @@ const ForgotPasswordPage = () => {
           <p className="mb-2">Redirecting to login page...</p>
           <p className="text-xs">
             💡 <strong>Tip:</strong> If you don&apos;t see the email, check your spam/junk folder. 
-            Add noreply@your-project.firebaseapp.com to your contacts to prevent this in future.
+            Add {getFirebaseNoReplyEmail()} to your contacts to prevent this in future.
           </p>
         </div>
         <Link href="/login" className="btn btn-ghost btn-sm mt-2">
