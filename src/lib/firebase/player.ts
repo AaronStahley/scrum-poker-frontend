@@ -69,3 +69,9 @@ export const updatePlayers = async (roomId: string, playerData: Partial<Player>)
 
     await Promise.all(updatePromises);
 };
+
+// Update player display name - this updates the name field in Firestore to match Firebase Auth displayName
+export const updatePlayerDisplayName = async (playerId: string, newDisplayName: string) => {
+    const playerRef = doc(db, 'players', playerId);
+    await updateDoc(playerRef, { name: newDisplayName });
+};

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/auth";
 import ChangePasswordForm from "../components/auth/ChangePasswordForm";
+import ChangeDisplayNameForm from "../components/auth/ChangeDisplayNameForm";
 
 const SettingsPage = () => {
   const { player, loading } = useAuth();
@@ -40,23 +41,21 @@ const SettingsPage = () => {
         </p>
       </div>
 
-      {/* User Info Section */}
+      {/* User Management Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Display Name Change Section */}
+        <ChangeDisplayNameForm />
+
+        {/* Password Change Section */}
+        <ChangePasswordForm />
+      </div>
+
+      {/* Account Information Section */}
+      <div className="mt-8">
         <div className="card bg-base-100 border border-base-300">
           <div className="card-body">
             <h3 className="card-title text-xl mb-4">Account Information</h3>
             <div className="space-y-4">
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">Display Name</span>
-                </label>
-                <input
-                  type="text"
-                  value={player.displayName || ""}
-                  className="input input-bordered w-full"
-                  disabled
-                />
-              </div>
               <div>
                 <label className="label">
                   <span className="label-text font-medium">Email</span>
@@ -64,8 +63,9 @@ const SettingsPage = () => {
                 <input
                   type="email"
                   value={player.email || ""}
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full bg-base-200"
                   disabled
+                  readOnly
                 />
               </div>
               <div className="text-sm text-base-content/60">
@@ -75,9 +75,6 @@ const SettingsPage = () => {
             </div>
           </div>
         </div>
-
-        {/* Password Change Section */}
-        <ChangePasswordForm />
       </div>
 
     </div>

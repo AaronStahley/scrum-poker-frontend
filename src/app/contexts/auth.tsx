@@ -1,6 +1,7 @@
 "use client";
 
 import { firebaseErrorMessages } from "@/lib/firebase/firebaseErrorMessages";
+import { updatePlayerDisplayName, playerExists } from "@/lib/firebase/player";
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase/firebase";
 import { 
@@ -29,6 +30,7 @@ interface AuthContextType {
   setPendingRoomId: (roomId: string | null) => void;
   sendPasswordResetEmail: (email: string) => Promise<void>;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updateDisplayName: (newDisplayName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -91,13 +93,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const sendPasswordResetEmailToUser = async (email: string) => {
     try {
-      setLoading(true);
       await sendPasswordResetEmail(auth, email);
     } catch (err: unknown) {
       const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to send password reset email";
       throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -107,8 +106,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      setLoading(true);
-      
       // Re-authenticate the user with their current password
       const credential = EmailAuthProvider.credential(player.email!, currentPassword);
       await reauthenticateWithCredential(player, credential);
@@ -119,8 +116,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (err: unknown) {
       const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to update password";
       throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const updateDisplayName = async (newDisplayName: string) => {
+    if (!player) {
+      throw new Error("No user is currently logged in");
+    }
+
+    if (!newDisplayName.trim()) {
+      throw new Error("Display name cannot be empty");
+    }
+
+    try {
+      // Update the user's display name in Firebase Auth
+      await updateProfile(player, { displayName: newDisplayName.trim() });
+      
+      // Reload the user to get the updated profile
+      await auth.currentUser?.reload();
+      
+      // Also update the Firestore player record if it exists
+      const playerExistsInDb = await playerExists(player.uid);
+      if (playerExistsInDb) {
+        await updatePlayerDisplayName(player.uid, newDisplayName.trim());
+      }
+      
+    } catch (err: unknown) {
+      const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to update display name";
+      throw new Error(errorMessage);
     }
   };
   
@@ -138,7 +161,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       pendingRoomId, 
       setPendingRoomId,
       sendPasswordResetEmail: sendPasswordResetEmailToUser,
-      updateUserPassword
+      updateUserPassword,
+      updateDisplayName
     }}>
       {children}
     </AuthContext.Provider>
