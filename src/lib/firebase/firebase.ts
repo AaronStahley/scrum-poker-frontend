@@ -17,3 +17,8 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 export { db, auth };
+
+export const getFirebaseNoReplyEmail = (): string => {
+  const authDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
+  return `noreply@${authDomain}`;
+};
