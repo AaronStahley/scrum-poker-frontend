@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/auth";
 import ChangePasswordForm from "../components/auth/ChangePasswordForm";
 import ChangeDisplayNameForm from "../components/auth/ChangeDisplayNameForm";
+import ThemeSelector from "../components/theme/ThemeSelector";
 
 const SettingsPage = () => {
   const { player, loading } = useAuth();
@@ -48,6 +49,11 @@ const SettingsPage = () => {
 
         {/* Password Change Section */}
         <ChangePasswordForm />
+      </div>
+
+      {/* Appearance Section */}
+      <div className="mt-8">
+        <ThemeSelector />
       </div>
 
       {/* Account Information Section */}

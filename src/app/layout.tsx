@@ -5,6 +5,7 @@ import TopNavBar from "./components/nav/TopNavBar";
 import AuthProviderWrapper from "../app/components/auth/AuthProviderWrapper";
 import NewPlayerModal from "./components/player/NewPlayerModal";
 import ErrorBoundary from "./components/error/ErrorBoundary";
+import { ThemeProvider } from "./contexts/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,17 +28,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-      <html lang="en" data-theme="business">
+      <html lang="en">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base-200`}
         >
-          <AuthProviderWrapper>
-            <ErrorBoundary>
-              <TopNavBar />
-              <NewPlayerModal />
-              <main className="container mx-auto px-4 py-4">{children}</main>
-            </ErrorBoundary>
-          </AuthProviderWrapper>
+          <ThemeProvider>
+            <AuthProviderWrapper>
+              <ErrorBoundary>
+                <TopNavBar />
+                <NewPlayerModal />
+                <main className="container mx-auto px-4 py-4">{children}</main>
+              </ErrorBoundary>
+            </AuthProviderWrapper>
+          </ThemeProvider>
         </body>
       </html>
   );
