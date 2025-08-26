@@ -9,7 +9,7 @@ import LoadOverlay from "@/app/components/loading/LoadingOverlay";
 const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
   const { joinRoom, loadingRoom, isPending } = useJoinRoom();
-  const { player, loading: playerLoading } = useAuth();
+  const { player } = useAuth();
       
   const handleCreateNewRoomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +27,7 @@ const CreateRoom = () => {
 
   return (
     <>
-      {(playerLoading || loadingRoom || isPending) && <LoadOverlay />}
+      {(loadingRoom || isPending) && <LoadOverlay />}
       <form onSubmit={handleCreateNewRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
         <input
           type="text"

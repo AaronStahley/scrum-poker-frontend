@@ -28,7 +28,7 @@ const PlayerNavDropdown = () => {
 
   return (
     <div className="dropdown dropdown-end">
-        <div tabIndex={0} role="button" className="btn btn-primary btn-circle avatar">
+        <div tabIndex={0} role="button" className="btn btn-primary btn-circle avatar transition-all duration-200 hover:scale-105">
             <div className="w-10 rounded-full">
             <UserIcon className="h-12 w-9.5" />
             </div>
