@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/app/contexts/auth";
 import { getFirebaseNoReplyEmail } from "@/lib/firebase/firebase";
 
@@ -15,6 +15,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { sendPasswordResetEmail } = useAuth();
+  const autoCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +28,10 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
       setEmail("");
       
       // Auto close modal after 8 seconds of showing success
-      setTimeout(() => {
+      autoCloseTimeoutRef.current = setTimeout(() => {
         onClose();
         setSuccess(false);
+        autoCloseTimeoutRef.current = null;
       }, 8000);
     } catch (err: unknown) {
       setError((err as Error).message);
@@ -39,12 +41,26 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   };
 
   const handleClose = () => {
+    // Clear auto-close timeout if it exists
+    if (autoCloseTimeoutRef.current) {
+      clearTimeout(autoCloseTimeoutRef.current);
+      autoCloseTimeoutRef.current = null;
+    }
     setEmail("");
     setError("");
     setSuccess(false);
     setIsSubmitting(false);
     onClose();
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoCloseTimeoutRef.current) {
+        clearTimeout(autoCloseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (!isOpen) return null;
 

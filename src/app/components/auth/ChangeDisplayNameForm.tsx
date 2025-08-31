@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/app/contexts/auth";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/constants/validation";
 
@@ -14,6 +14,7 @@ const ChangeDisplayNameForm: React.FC<ChangeDisplayNameFormProps> = ({ onSuccess
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { player, updateDisplayName } = useAuth();
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +49,9 @@ const ChangeDisplayNameForm: React.FC<ChangeDisplayNameFormProps> = ({ onSuccess
       }
 
       // Clear success message after 5 seconds
-      setTimeout(() => {
+      successTimeoutRef.current = setTimeout(() => {
         setSuccess(false);
+        successTimeoutRef.current = null;
       }, 5000);
     } catch (err: unknown) {
       setError((err as Error).message);
@@ -57,6 +59,15 @@ const ChangeDisplayNameForm: React.FC<ChangeDisplayNameFormProps> = ({ onSuccess
       setIsSubmitting(false);
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="card bg-base-100 border border-base-300">
