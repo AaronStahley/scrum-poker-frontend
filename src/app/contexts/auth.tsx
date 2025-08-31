@@ -1,7 +1,7 @@
 "use client";
 
 import { firebaseErrorMessages } from "@/lib/firebase/firebaseErrorMessages";
-import { updatePlayerDisplayName, playerExists } from "@/lib/firebase/player";
+import { updatePlayerDisplayName } from "@/lib/firebase/player";
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase/firebase";
 import { 
@@ -139,11 +139,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Reload the user to get the updated profile
       await auth.currentUser?.reload();
       
-      // Also update the Firestore player record if it exists
-      const playerExistsInDb = await playerExists(player.uid);
-      if (playerExistsInDb) {
-        await updatePlayerDisplayName(player.uid, newDisplayName.trim());
-      }
+      // Also update the Firestore player record (creates document if it doesn't exist)
+      await updatePlayerDisplayName(player.uid, newDisplayName.trim());
       
     } catch (err: unknown) {
       const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to update display name";
