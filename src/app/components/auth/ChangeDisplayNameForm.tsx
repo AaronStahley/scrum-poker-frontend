@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/app/contexts/auth";
+import { DISPLAY_NAME_MAX_LENGTH } from "@/constants/validation";
 
 interface ChangeDisplayNameFormProps {
   onSuccess?: () => void;
@@ -25,8 +26,8 @@ const ChangeDisplayNameForm: React.FC<ChangeDisplayNameFormProps> = ({ onSuccess
       return;
     }
 
-    if (newDisplayName.trim().length > 50) {
-      setError("Display name must be 50 characters or less");
+    if (newDisplayName.trim().length > DISPLAY_NAME_MAX_LENGTH) {
+      setError(`Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`);
       return;
     }
 
@@ -122,18 +123,18 @@ const ChangeDisplayNameForm: React.FC<ChangeDisplayNameFormProps> = ({ onSuccess
             <input
               id="new-display-name"
               type="text"
-              placeholder="Enter new display name (max 50 characters)"
+              placeholder={`Enter new display name (max ${DISPLAY_NAME_MAX_LENGTH} characters)`}
               className="input input-bordered w-full"
               value={newDisplayName}
               onChange={(e) => setNewDisplayName(e.target.value)}
               required
-              maxLength={50}
+              maxLength={DISPLAY_NAME_MAX_LENGTH}
               disabled={isSubmitting}
               autoComplete="name"
             />
             <label className="label">
               <span className="label-text-alt text-base-content/60">
-                {newDisplayName.length}/50 characters
+                {newDisplayName.length}/{DISPLAY_NAME_MAX_LENGTH} characters
               </span>
             </label>
           </div>
