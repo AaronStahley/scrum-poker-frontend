@@ -5,21 +5,26 @@ import Link from 'next/link'
 import { Bars3Icon } from '@heroicons/react/20/solid'
 import { useAuth } from '@/app/contexts/auth'
 import PlayerNavDropdown from './PlayerNavDropdown'
+import NavBarSkeleton from '@/app/components/loading/NavBarSkeleton'
 
 const TopNavBarRight = () => {
   const { player, loading } = useAuth();
 
-  if(loading) return null;
+  if(loading) return (
+    <div className="transition-opacity duration-300 opacity-75" suppressHydrationWarning>
+      <NavBarSkeleton />
+    </div>
+  );
 
   if(!player || player.isAnonymous)  return (
-    <div>
+    <div className="transition-opacity duration-300 opacity-100" suppressHydrationWarning>
       <div className="hidden sm:flex gap-2">
-        <Link href="/signup" className="btn bg-primary btn-ghost text-base">Sign Up</Link>
-        <Link href="/login" className="btn btn-ghost text-base">Login</Link>
+        <Link href="/signup" className="btn bg-primary btn-ghost text-base transition-all duration-200 hover:scale-105">Sign Up</Link>
+        <Link href="/login" className="btn btn-ghost text-base transition-all duration-200 hover:scale-105">Login</Link>
       </div>
       <div className="sm:hidden">
         <div className="dropdown dropdown-end">
-          <label tabIndex={0} className="btn btn-ghost btn-circle">
+          <label tabIndex={0} className="btn btn-ghost btn-circle transition-all duration-200 hover:scale-105">
             <button className="btn btn-square btn-ghost">
                 <Bars3Icon className="h-6 w-6" />
             </button>
@@ -41,7 +46,7 @@ const TopNavBarRight = () => {
   );
 
   return (
-    <div className="sm:flex gap-2">
+    <div className="sm:flex gap-2 transition-opacity duration-300 opacity-100" suppressHydrationWarning>
       <PlayerNavDropdown />
     </div>
   )
