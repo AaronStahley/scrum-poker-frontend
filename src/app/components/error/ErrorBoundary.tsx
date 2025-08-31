@@ -48,7 +48,11 @@ class ErrorBoundary extends Component<Props, State> {
               </button>
               <button 
                 className="btn btn-sm btn-primary ml-2"
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.reload();
+                  }
+                }}
               >
                 Reload page
               </button>

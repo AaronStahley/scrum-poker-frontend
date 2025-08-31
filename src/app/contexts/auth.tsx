@@ -38,6 +38,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [player, setPlayer] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [showCreateNewPlayerModal, setShowCreateNewPlayerModal] = useState(false);
   const [pendingRoomId, setPendingRoomId] = useState<string | null>(null);
   const [playerCreated, setPlayerCreated] = useState(false);
@@ -46,10 +47,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setPlayer(firebaseUser);
       setLoading(false);
+      setIsInitialized(true);
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Note: Don't return early here as it prevents context from being available during SSR
 
   const upgradeAnonymousPlayer = async (email: string, password: string) => {
     if (!player) {
@@ -164,7 +168,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       updateUserPassword,
       updateDisplayName
     }}>
-      {children}
+      <div suppressHydrationWarning={!isInitialized}>
+        {children}
+      </div>
     </AuthContext.Provider>
   );
 };

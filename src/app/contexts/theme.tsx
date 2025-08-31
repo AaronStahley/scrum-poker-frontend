@@ -79,9 +79,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Don't render until theme is initialized to prevent flash
+  // Render loading skeleton during theme initialization to prevent hydration mismatch
   if (!isInitialized) {
-    return null;
+    return (
+      <div suppressHydrationWarning>
+        {children}
+      </div>
+    );
   }
 
   return (

@@ -24,7 +24,7 @@ const NewPlayerModal = () => {
   if(!showCreateNewPlayerModal) return null;
 
   return (
-    <dialog id="my_modal_5" className="modal modal-middle text-center" open={true}>
+    <dialog id="my_modal_5" className="modal modal-middle text-center" open={true} suppressHydrationWarning>
       <div className="modal-box">
         <div>
           <h2 className="text-xl font-bold mb-3">Welcome!</h2>

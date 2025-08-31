@@ -11,13 +11,13 @@ const TopNavBarRight = () => {
   const { player, loading } = useAuth();
 
   if(loading) return (
-    <div className="transition-opacity duration-300 opacity-75">
+    <div className="transition-opacity duration-300 opacity-75" suppressHydrationWarning>
       <NavBarSkeleton />
     </div>
   );
 
   if(!player || player.isAnonymous)  return (
-    <div className="transition-opacity duration-300 opacity-100">
+    <div className="transition-opacity duration-300 opacity-100" suppressHydrationWarning>
       <div className="hidden sm:flex gap-2">
         <Link href="/signup" className="btn bg-primary btn-ghost text-base transition-all duration-200 hover:scale-105">Sign Up</Link>
         <Link href="/login" className="btn btn-ghost text-base transition-all duration-200 hover:scale-105">Login</Link>
@@ -46,7 +46,7 @@ const TopNavBarRight = () => {
   );
 
   return (
-    <div className="sm:flex gap-2 transition-opacity duration-300 opacity-100">
+    <div className="sm:flex gap-2 transition-opacity duration-300 opacity-100" suppressHydrationWarning>
       <PlayerNavDropdown />
     </div>
   )
