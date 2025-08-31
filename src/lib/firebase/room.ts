@@ -3,6 +3,7 @@ import {
     addDoc,
     getDoc, 
     updateDoc, 
+    deleteDoc,
     collection, 
     arrayUnion, 
     query, 
@@ -11,7 +12,7 @@ import {
     getDocs 
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
-import { Room } from "@/types/room";
+import { Room, PlayerRemovalPermission } from "@/types/room";
 
 // Create a new room
 export const createRoom = async (roomName: string, ownerId: string | null | undefined) => {
@@ -27,6 +28,7 @@ export const createRoom = async (roomName: string, ownerId: string | null | unde
         name: roomName,
         status: roomStatus,
         players: [ownerId] as string[],
+        playerRemovalPermissions: 'host-only',
     };
 
     const roomRef = await addDoc(collection(db, 'rooms'), newRoom);
@@ -96,7 +98,7 @@ export const addPlayerToRoom = async (roomId: string, playerId: string) => {
 };
 
 // Remove a player from a room
-export const removePlayerFromRoom = async (roomId: string, playerId: string) => {
+export const removePlayerFromRoom = async (roomId: string, playerId: string, currentUserId?: string) => {
     const roomRef = doc(db, 'rooms', roomId);
     const roomSnap = await getDoc(roomRef);
 
@@ -110,6 +112,27 @@ export const removePlayerFromRoom = async (roomId: string, playerId: string) => 
     if (!isPlayerInRoom) {
         console.log("Player not in room:", playerId);
         return;
+    }
+
+    // Validate permissions if currentUserId is provided
+    if (currentUserId) {
+        const isHost = roomData.createdBy === currentUserId;
+        const permissions = roomData.playerRemovalPermissions || 'host-only';
+        
+        // Cannot remove the host
+        if (playerId === roomData.createdBy) {
+            throw new Error("Cannot remove the room host");
+        }
+        
+        // Cannot remove yourself (should be handled client-side, but double-check)
+        if (playerId === currentUserId) {
+            throw new Error("Cannot remove yourself from the room");
+        }
+        
+        // Check if current user has permission to remove players
+        if (permissions === 'host-only' && !isHost) {
+            throw new Error("Only the host can remove players from this room");
+        }
     }
 
     await updateDoc(roomRef, {
@@ -137,4 +160,61 @@ export const getPreviousRooms = async (playerId: string) => {
     });
 
     return rooms;
+};
+
+// Delete a room (host only)
+export const deleteRoom = async (roomId: string, currentUserId: string) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if (!roomSnap.exists()) {
+        throw new Error("Room not found");
+    }
+
+    const roomData = roomSnap.data();
+    
+    // Validate that only the room owner can delete the room
+    if (roomData.createdBy !== currentUserId) {
+        throw new Error("Only the room host can delete this room");
+    }
+
+    await deleteDoc(roomRef);
+};
+
+// Update room name (host only)
+export const updateRoomName = async (roomId: string, newName: string, currentUserId: string) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if (!roomSnap.exists()) {
+        throw new Error("Room not found");
+    }
+
+    const roomData = roomSnap.data();
+    
+    // Validate that only the room owner can update the room name
+    if (roomData.createdBy !== currentUserId) {
+        throw new Error("Only the room host can update this room");
+    }
+
+    await updateDoc(roomRef, { name: newName });
+};
+
+// Update room player removal permissions (host only)
+export const updateRoomPermissions = async (roomId: string, permissions: PlayerRemovalPermission, currentUserId: string) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if (!roomSnap.exists()) {
+        throw new Error("Room not found");
+    }
+
+    const roomData = roomSnap.data();
+    
+    // Validate that only the room owner can update permissions
+    if (roomData.createdBy !== currentUserId) {
+        throw new Error("Only the room host can update permissions");
+    }
+
+    await updateDoc(roomRef, { playerRemovalPermissions: permissions });
 };

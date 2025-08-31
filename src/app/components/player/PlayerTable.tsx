@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Player } from '../../../types/player';
-import { TrashIcon, ArrowLongUpIcon, ArrowLongDownIcon, ArrowsUpDownIcon } from '@heroicons/react/20/solid';
+import { PlayerRemovalPermission } from '../../../types/room';
+import { TrashIcon, ArrowLongUpIcon, ArrowLongDownIcon, ArrowsUpDownIcon, StarIcon } from '@heroicons/react/20/solid';
 
 interface PlayerTableProps {
   initislSortDirection: string;
@@ -9,11 +10,12 @@ interface PlayerTableProps {
   players: Player[];
   revealVotes: boolean;
   removePlayer: (playerName: string) => void;
+  playerRemovalPermissions?: PlayerRemovalPermission;
 }
 
 type SortDirection = 'asc' | 'desc' | 'none';
 
-const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId, players, initislSortDirection, revealVotes, removePlayer }) => {
+const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId, players, initislSortDirection, revealVotes, removePlayer, playerRemovalPermissions = 'host-only' }) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(initislSortDirection as SortDirection);
   const [sortedPlayers, setSortePlayers] = useState<Player[]>(players);
 
@@ -106,8 +108,12 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId,
           {sortedPlayers.map((player) => (
             <tr key={player.id} className="hover">
               <td className="p-3">
-                {/* <div aria-label="status" className="status status-success mr-3"></div> */}
-                {player.name}
+                <div className="flex items-center gap-2">
+                  {roomOwnerId === player.id && (
+                    <StarIcon className="h-5 w-5 text-yellow-500" title="Room Host" />
+                  )}
+                  <span>{player.name}</span>
+                </div>
               </td>
                 <td className="p-3">
                   {player.selection === null || player.selection === undefined ? (
@@ -119,14 +125,27 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId,
                   )}
                 </td>
               <td className="p-1">
-                {roomOwnerId != player.id && player.id !== currentPlayerId && (
-                  <button
-                  className="btn btn-danger"
-                  onClick={() => removePlayer(player.id)}
-                  >
-                  <TrashIcon className="h-5 w-5" />
-                  </button>
-                )}
+                {(() => {
+                  // Never allow removing the host or yourself
+                  if (player.id === roomOwnerId || player.id === currentPlayerId) {
+                    return null;
+                  }
+                  
+                  // Check permissions for who can remove players
+                  const canRemovePlayer = playerRemovalPermissions === 'host-only' 
+                    ? currentPlayerId === roomOwnerId  // Only host can remove
+                    : true; // All players can remove others
+                    
+                  return canRemovePlayer ? (
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => removePlayer(player.id)}
+                      title={playerRemovalPermissions === 'host-only' ? 'Remove player (Host only)' : 'Remove player'}
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  ) : null;
+                })()}
                 </td>
             </tr>
           ))}

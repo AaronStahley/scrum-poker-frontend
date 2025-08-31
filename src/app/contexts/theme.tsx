@@ -58,20 +58,32 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 const DEFAULT_THEME: Theme = "business";
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Initialize theme from localStorage on client side
-  useEffect(() => {
+  const [theme, setThemeState] = useState<Theme>(() => {
+    // Initialize theme immediately if available
     if (typeof window !== "undefined") {
       const savedTheme = localStorage.getItem("app-theme") as Theme;
       if (savedTheme && savedTheme in AVAILABLE_THEMES) {
-        setThemeState(savedTheme);
-        document.documentElement.setAttribute("data-theme", savedTheme);
-      } else {
-        document.documentElement.setAttribute("data-theme", DEFAULT_THEME);
+        return savedTheme;
       }
-      setIsInitialized(true);
+    }
+    return DEFAULT_THEME;
+  });
+
+  // Sync with localStorage changes from other tabs
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === "app-theme" && e.newValue) {
+          const newTheme = e.newValue as Theme;
+          if (newTheme in AVAILABLE_THEMES) {
+            setThemeState(newTheme);
+            document.documentElement.setAttribute("data-theme", newTheme);
+          }
+        }
+      };
+
+      window.addEventListener("storage", handleStorageChange);
+      return () => window.removeEventListener("storage", handleStorageChange);
     }
   }, []);
 
@@ -82,15 +94,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       document.documentElement.setAttribute("data-theme", newTheme);
     }
   };
-
-  // Render loading skeleton during theme initialization to prevent hydration mismatch
-  if (!isInitialized) {
-    return (
-      <div suppressHydrationWarning>
-        {children}
-      </div>
-    );
-  }
 
   return (
     <ThemeContext.Provider 
