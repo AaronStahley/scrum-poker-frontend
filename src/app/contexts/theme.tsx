@@ -2,46 +2,50 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-// Available DaisyUI themes
-export const AVAILABLE_THEMES = [
-  // Light themes
-  "light",
-  "cupcake", 
-  "bumblebee",
-  "emerald",
-  "corporate",
-  "retro",
-  "cyberpunk",
-  "valentine",
-  "garden",
-  "lofi",
-  "pastel",
-  "fantasy",
-  "wireframe",
-  "cmyk",
-  "autumn",
-  "acid",
-  "lemonade",
-  "winter",
+// Available DaisyUI themes with metadata
+export const AVAILABLE_THEMES = {
+  // Popular light themes (shown first)
+  light: { isDark: false, isPopular: true },
+  cupcake: { isDark: false, isPopular: true }, 
+  emerald: { isDark: false, isPopular: true },
+  corporate: { isDark: false, isPopular: true },
   
-  // Dark themes
-  "dark",
-  "synthwave",
-  "halloween",
-  "forest",
-  "aqua",
-  "black",
-  "luxury",
-  "dracula",
-  "night",
-  "coffee",
-  "dim",
-  "nord",
-  "sunset",
-  "business"
-] as const;
+  // Other light themes  
+  bumblebee: { isDark: false, isPopular: false },
+  retro: { isDark: false, isPopular: false },
+  cyberpunk: { isDark: false, isPopular: false },
+  valentine: { isDark: false, isPopular: false },
+  garden: { isDark: false, isPopular: false },
+  lofi: { isDark: false, isPopular: false },
+  pastel: { isDark: false, isPopular: false },
+  fantasy: { isDark: false, isPopular: false },
+  wireframe: { isDark: false, isPopular: false },
+  cmyk: { isDark: false, isPopular: false },
+  autumn: { isDark: false, isPopular: false },
+  acid: { isDark: false, isPopular: false },
+  lemonade: { isDark: false, isPopular: false },
+  winter: { isDark: false, isPopular: false },
+  nord: { isDark: false, isPopular: false },
+  
+  // Popular dark themes (shown first)
+  dark: { isDark: true, isPopular: true },
+  business: { isDark: true, isPopular: true },
+  dracula: { isDark: true, isPopular: true },
+  synthwave: { isDark: true, isPopular: true },
+  
+  // Other dark themes
+  halloween: { isDark: true, isPopular: false },
+  forest: { isDark: true, isPopular: false },
+  aqua: { isDark: true, isPopular: false },
+  black: { isDark: true, isPopular: false },
+  luxury: { isDark: true, isPopular: false },
+  night: { isDark: true, isPopular: false },
+  coffee: { isDark: true, isPopular: false },
+  dim: { isDark: true, isPopular: false },
+  sunset: { isDark: true, isPopular: false }
+} as const;
 
-export type Theme = typeof AVAILABLE_THEMES[number];
+export type Theme = keyof typeof AVAILABLE_THEMES;
 
 interface ThemeContextType {
   theme: Theme;
@@ -61,7 +65,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedTheme = localStorage.getItem("app-theme") as Theme;
-      if (savedTheme && AVAILABLE_THEMES.includes(savedTheme)) {
+      if (savedTheme && savedTheme in AVAILABLE_THEMES) {
         setThemeState(savedTheme);
         document.documentElement.setAttribute("data-theme", savedTheme);
       } else {
@@ -93,7 +97,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       value={{ 
         theme, 
         setTheme, 
-        themes: AVAILABLE_THEMES 
+        themes: Object.keys(AVAILABLE_THEMES) as readonly Theme[]
       }}
     >
       {children}

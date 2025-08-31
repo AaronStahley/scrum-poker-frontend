@@ -1,31 +1,9 @@
 "use client";
 
-import { useTheme, Theme } from "@/app/contexts/theme";
+import { useTheme, Theme, AVAILABLE_THEMES } from "@/app/contexts/theme";
 import ThemePreview from "./ThemePreview";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-
-// Define theme categories outside component to avoid dependency issues
-// Option A: Popular first, then alphabetical
-const lightThemes = [
-  // Popular themes first
-  "light", "cupcake", "emerald", "corporate", 
-  // Then alphabetical
-  "acid", "autumn", "bumblebee", "fantasy", "garden", "lemonade", 
-  "lofi", "nord", "pastel", "retro", "valentine", "wireframe", "winter"
-];
-
-const darkThemes = [
-  // Popular themes first  
-  "dark", "business", "dracula", "synthwave",
-  // Then alphabetical
-  "aqua", "black", "coffee", "cyberpunk", "dim", "forest", 
-  "halloween", "luxury", "night", "sunset"
-];
-
-// Popular themes for initial display
-const popularLightThemes = ["light", "cupcake", "emerald", "corporate"];
-const popularDarkThemes = ["dark", "business", "dracula", "synthwave"];
 
 const ThemeSelector = () => {
   const { theme: currentTheme, setTheme, themes } = useTheme();
@@ -33,37 +11,48 @@ const ThemeSelector = () => {
   const [isLightExpanded, setIsLightExpanded] = useState(false);
   const [isDarkExpanded, setIsDarkExpanded] = useState(false);
 
+  // Derive theme arrays from AVAILABLE_THEMES with popular/regular separation
+  const themeCategories = useMemo(() => {
+    // Popular themes (always shown)
+    const popularLight = Object.entries(AVAILABLE_THEMES)
+      .filter(([, config]) => !config.isDark && config.isPopular)
+      .map(([name]) => name as Theme)
+      .sort();
+    
+    const popularDark = Object.entries(AVAILABLE_THEMES)
+      .filter(([, config]) => config.isDark && config.isPopular)
+      .map(([name]) => name as Theme)
+      .sort();
+
+    // Non-popular themes (shown in accordion)
+    const otherLight = Object.entries(AVAILABLE_THEMES)
+      .filter(([, config]) => !config.isDark && !config.isPopular)
+      .map(([name]) => name as Theme)
+      .sort();
+    
+    const otherDark = Object.entries(AVAILABLE_THEMES)
+      .filter(([, config]) => config.isDark && !config.isPopular)
+      .map(([name]) => name as Theme)
+      .sort();
+
+    return {
+      popularLight,
+      popularDark,
+      otherLight,
+      otherDark,
+      allLight: [...popularLight, ...otherLight],
+      allDark: [...popularDark, ...otherDark]
+    };
+  }, []);
+
   // Auto-expand section containing current theme
   useEffect(() => {
-    if (lightThemes.includes(currentTheme)) {
+    if (themeCategories.allLight.includes(currentTheme)) {
       setIsLightExpanded(true);
-    } else if (darkThemes.includes(currentTheme)) {
+    } else if (themeCategories.allDark.includes(currentTheme)) {
       setIsDarkExpanded(true);
     }
-  }, [currentTheme]);
-
-  // Filter themes based on search and expand state
-  const getFilteredThemes = (themeList: string[], isExpanded: boolean, popularList: string[]) => {
-    const filtered = themeList.filter(theme => 
-      theme.includes(searchTerm.toLowerCase()) && themes.includes(theme as Theme)
-    );
-    
-    // If search is active, show all filtered themes
-    if (searchTerm) {
-      return filtered;
-    }
-    
-    // If collapsed, show only popular themes
-    if (!isExpanded) {
-      return filtered.filter(theme => popularList.includes(theme));
-    }
-    
-    // If expanded, show all themes in category
-    return filtered;
-  };
-
-  const filteredLightThemes = getFilteredThemes(lightThemes, isLightExpanded, popularLightThemes);
-  const filteredDarkThemes = getFilteredThemes(darkThemes, isDarkExpanded, popularDarkThemes);
+  }, [currentTheme, themeCategories]);
 
   // Auto-expand sections when searching
   useEffect(() => {
@@ -72,6 +61,32 @@ const ThemeSelector = () => {
       setIsDarkExpanded(true);
     }
   }, [searchTerm]);
+
+  // Filter themes based on search term and expand state
+  const getFilteredThemes = (themeList: Theme[], isExpanded: boolean, popularThemes: Theme[]) => {
+    const filtered = themeList.filter(theme => 
+      theme.includes(searchTerm.toLowerCase()) && themes.includes(theme)
+    );
+    
+    // If search is active, show all filtered themes
+    if (searchTerm) {
+      return filtered;
+    }
+    
+    // Always show popular themes
+    const filteredPopular = popularThemes.filter(theme => themes.includes(theme));
+    
+    // If collapsed, show only popular themes
+    if (!isExpanded) {
+      return filteredPopular;
+    }
+    
+    // If expanded, show all themes
+    return filtered;
+  };
+
+  const filteredLightThemes = getFilteredThemes(themeCategories.allLight, isLightExpanded, themeCategories.popularLight);
+  const filteredDarkThemes = getFilteredThemes(themeCategories.allDark, isDarkExpanded, themeCategories.popularDark);
 
   const handleThemeSelect = (theme: Theme) => {
     setTheme(theme);
@@ -131,7 +146,7 @@ const ThemeSelector = () => {
                 <div className="flex items-center gap-2">
                   {!isLightExpanded && !searchTerm && (
                     <span className="text-sm text-base-content/60">
-                      {popularLightThemes.length} of {lightThemes.filter(t => themes.includes(t as Theme)).length}
+                      {themeCategories.popularLight.length} of {themeCategories.allLight.length}
                     </span>
                   )}
                   <ChevronDownIcon 
@@ -153,13 +168,13 @@ const ThemeSelector = () => {
                 ))}
               </div>
               
-              {!isLightExpanded && !searchTerm && filteredLightThemes.length < lightThemes.filter(t => themes.includes(t as Theme)).length && (
+              {!isLightExpanded && !searchTerm && filteredLightThemes.length < themeCategories.allLight.length && (
                 <div className="mt-4 text-center">
                   <button
                     onClick={toggleLightSection}
                     className="btn btn-sm btn-outline"
                   >
-                    View All {lightThemes.filter(t => themes.includes(t as Theme)).length} Light Themes
+                    View All {themeCategories.allLight.length} Light Themes
                   </button>
                 </div>
               )}
@@ -179,7 +194,7 @@ const ThemeSelector = () => {
                 <div className="flex items-center gap-2">
                   {!isDarkExpanded && !searchTerm && (
                     <span className="text-sm text-base-content/60">
-                      {popularDarkThemes.length} of {darkThemes.filter(t => themes.includes(t as Theme)).length}
+                      {themeCategories.popularDark.length} of {themeCategories.allDark.length}
                     </span>
                   )}
                   <ChevronDownIcon 
@@ -201,13 +216,13 @@ const ThemeSelector = () => {
                 ))}
               </div>
               
-              {!isDarkExpanded && !searchTerm && filteredDarkThemes.length < darkThemes.filter(t => themes.includes(t as Theme)).length && (
+              {!isDarkExpanded && !searchTerm && filteredDarkThemes.length < themeCategories.allDark.length && (
                 <div className="mt-4 text-center">
                   <button
                     onClick={toggleDarkSection}
                     className="btn btn-sm btn-outline"
                   >
-                    View All {darkThemes.filter(t => themes.includes(t as Theme)).length} Dark Themes
+                    View All {themeCategories.allDark.length} Dark Themes
                   </button>
                 </div>
               )}
