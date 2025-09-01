@@ -1,5 +1,106 @@
 # Changelog
 
+## [1.2.0] - 2025-09-01
+
+### 🆕 New Features
+
+#### Room Management & Host Settings
+- **Host Settings Modal**: Comprehensive host settings modal with card-based sections and improved UX
+- **Room Header**: New `RoomHeader` component for better room information display
+- **Delete Room Confirmation**: Dedicated `DeleteRoomConfirmationModal` with proper confirmation flow
+- **Room Permissions**: Enhanced room permission management for host controls
+- **Visual Hierarchy**: Improved UI with icons, proper typography, and visual emphasis
+
+#### Display Name Management
+- **Change Display Name**: New `ChangeDisplayNameForm` component allows users to update their display name
+- **Character Validation**: Real-time character counting and validation (3-50 characters)
+- **Firebase Sync**: Display name changes sync between Firebase Auth and Firestore player records
+- **Settings Integration**: Display name change functionality integrated into Settings page with local loading states
+
+#### Theme System
+- **Theme Selector**: New comprehensive theme selection system with 30+ DaisyUI themes
+- **Theme Preview**: Live theme preview component showing colors and sample UI elements
+- **Theme Context**: Global theme context for app-wide theme management with improved performance
+- **Persistent Themes**: Theme selection persists across sessions using localStorage
+
+#### UX Improvements
+- **Modal-Based Forgot Password**: Replaced separate forgot password page with modern modal approach
+- **Enhanced Player Display**: Player selection display with visual icons in PlayerTable component
+- **Improved Autofill Handling**: Better browser autofill support and accessibility for modal interactions
+- **Loading States**: Enhanced loading skeletons for navigation and profile areas
+- **Error Boundaries**: Improved error boundary component with better error display
+
+### 🏗️ Technical Implementation
+
+#### Component Architecture
+- **Host Management Components**: New reusable components for host settings and room management
+- **Modal System**: Improved modal system with better UX patterns and confirmation flows
+- **Loading Skeletons**: Dedicated skeleton components (`NavBarSkeleton`, `ProfileSkeleton`, `SkeletonDropdownArrow`)
+- **Form Validation**: Enhanced form validation with character limits and real-time feedback
+
+#### Context Management
+- **Theme Context**: Optimized theme context provider with better performance
+- **Auth Context Updates**: Enhanced auth context with display name change functionality
+- **Player State Sync**: Improved synchronization between authentication and player data
+- **Room State Management**: Enhanced room state management for host operations
+
+#### Firebase Integration
+- **Room Operations**: New Firebase functions for room deletion and host settings
+- **Player Management**: Enhanced player management with host permissions
+- **Real-time Updates**: Improved real-time synchronization for room changes
+
+### 🎨 UI/UX Design
+
+#### Design System Enhancements
+- **Card-Based Layout**: Host settings modal uses card-based sections for better organization
+- **Icon Integration**: Consistent use of Heroicons throughout the application
+- **Typography Hierarchy**: Improved visual hierarchy with proper text sizing and emphasis
+- **Theme Variety**: Support for 30+ DaisyUI themes with live preview
+- **Consistent Modals**: Standardized modal design patterns across the application
+
+#### Accessibility
+- **Modal Accessibility**: Improved modal focus management and keyboard navigation
+- **Form Accessibility**: Better form labeling and validation feedback
+- **Button Sizing**: Consistent button sizing to prevent overflow and text wrapping
+- **Theme Accessibility**: Theme selector with proper contrast and visual indicators
+
+### 🔄 Updated Components
+
+#### Enhanced Components
+- **RoomClient**: Major enhancements with host settings integration and room management
+- **PlayerTable**: Enhanced with icon-based selection display
+- **Settings Page**: Major redesign with improved layout and new functionality
+- **Navigation**: Updated `TopNavBarRight` and `PlayerNavDropdown` with new features
+- **Room Page**: Enhanced room page with header and host controls
+
+#### New Components
+- **HostSettingsModal**: Comprehensive host settings with card-based design
+- **DeleteRoomConfirmationModal**: Dedicated room deletion confirmation
+- **RoomHeader**: Room information display component
+- **ChangeDisplayNameForm**: Complete display name management with validation
+- **ForgotPasswordModal**: Modern modal-based forgot password functionality  
+- **ThemeSelector**: Comprehensive theme selection with preview
+- **ThemePreview**: Live theme preview component
+
+### 🧪 Testing Coverage
+- **Host Settings Tests**: Comprehensive testing for host modal functionality
+- **Room Management Tests**: Tests for room deletion and host operations
+- **Player Table Tests**: Enhanced tests for player display functionality
+- **Integration Tests**: Multi-component testing for room management workflows
+
+### 🐛 Bug Fixes
+
+#### Critical UX Fixes
+- **Button Overflow**: Fixed button sizing in modals to prevent horizontal overflow
+- **Icon Consistency**: Replaced inline SVG icons with Heroicons components for consistency
+- **Form State Management**: Fixed form loading states to prevent UI blocking
+- **Modal Focus Management**: Fixed modal focus and interaction issues
+
+#### Navigation & Layout
+- **Theme Context Performance**: Optimized theme switching performance
+- **Layout Integration**: Better integration of theme context with app layout
+- **Route Compatibility**: Maintained backwards compatibility for existing routes
+
 ## [1.1.0] - 2025-01-24
 
 ### 🔐 New Features
