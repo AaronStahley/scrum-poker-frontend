@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TrashIcon } from "@heroicons/react/20/solid";
+import { TrashIcon, ExclamationTriangleIcon, XCircleIcon } from "@heroicons/react/20/solid";
 
 interface DeleteRoomConfirmationModalProps {
   isOpen: boolean;
@@ -54,38 +54,14 @@ const DeleteRoomConfirmationModal: React.FC<DeleteRoomConfirmationModalProps> = 
 
         {error && (
           <div className="alert alert-error mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 shrink-0 stroke-current"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <XCircleIcon className="h-8 w-8" />
             <span>{error}</span>
           </div>
         )}
 
         <div className="text-center mb-6">
           <div className="alert alert-warning mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 shrink-0 stroke-current mx-auto"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-              />
-            </svg>
+            <ExclamationTriangleIcon className="h-8 w-8" />
             <div>
               <h4 className="font-semibold text-lg">This action cannot be undone!</h4>
               <p className="text-sm mt-1">All room data will be permanently deleted.</p>
@@ -107,7 +83,7 @@ const DeleteRoomConfirmationModal: React.FC<DeleteRoomConfirmationModalProps> = 
         <div className="modal-action justify-center gap-3">
           <button 
             type="button"
-            className="btn btn-outline btn-wide"
+            className="btn btn-outline min-w-32"
             onClick={handleClose}
             disabled={isDeleting}
           >
@@ -115,7 +91,7 @@ const DeleteRoomConfirmationModal: React.FC<DeleteRoomConfirmationModalProps> = 
           </button>
           <button 
             type="button" 
-            className={`btn btn-error btn-wide ${isDeleting ? 'loading' : ''}`}
+            className={`btn btn-error min-w-32 ${isDeleting ? 'loading' : ''}`}
             onClick={handleDelete}
             disabled={isDeleting}
           >
