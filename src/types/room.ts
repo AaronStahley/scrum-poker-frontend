@@ -1,3 +1,5 @@
+export type PlayerRemovalPermission = 'host-only' | 'all-players';
+
 export interface Room {
     id: string;
     createdAt: Date;
@@ -5,4 +7,5 @@ export interface Room {
     name: string;
     status: string;
     players: string[];
+    playerRemovalPermissions?: PlayerRemovalPermission;
 }
