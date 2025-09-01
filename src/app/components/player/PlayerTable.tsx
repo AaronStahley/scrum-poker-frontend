@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Player } from '../../../types/player';
 import { PlayerRemovalPermission } from '../../../types/room';
 import { TrashIcon, ArrowLongUpIcon, ArrowLongDownIcon, ArrowsUpDownIcon, StarIcon } from '@heroicons/react/20/solid';
+import { MinusIcon, LockClosedIcon } from '@heroicons/react/16/solid';
 
 interface PlayerTableProps {
   initislSortDirection: string;
@@ -117,11 +118,11 @@ const PlayerTable: React.FC<PlayerTableProps> = ({ roomOwnerId, currentPlayerId,
               </td>
                 <td className="p-3">
                   {player.selection === null || player.selection === undefined ? (
-                  <span className="text-primary-content">-</span>
+                  <span><MinusIcon className="h-4 w-4" /></span>
                   ) : revealVotes ? (
                   <span className="font-bold">{player.selection}</span>
                   ) : (
-                  <span className="text-secondary">🔒</span>
+                  <span><LockClosedIcon className="h-5 w-5" /></span>
                   )}
                 </td>
               <td className="p-1">
