@@ -4,6 +4,7 @@ import { useTheme, Theme, AVAILABLE_THEMES } from "@/app/contexts/theme";
 import ThemePreview from "./ThemePreview";
 import ThemeModeSelector from "./ThemeModeSelector";
 import { useState, useEffect, useMemo } from "react";
+import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 
 const ThemeSelector = () => {
   const { 
@@ -143,8 +144,9 @@ const ThemeSelector = () => {
 
         {/* Global Theme Search */}
         <div className="mb-8 p-4 bg-base-100 border border-base-300 rounded-lg">
-          <div className="text-sm font-medium text-base-content/80 mb-3">
-            🔍 Search All Themes
+          <div className="flex items-center gap-2 text-sm font-medium text-base-content/80 mb-3">
+            <MagnifyingGlassIcon className="h-4 w-4" />
+            <span>Search All Themes</span>
           </div>
           <input
             type="text"

@@ -52,7 +52,6 @@ const TopNavBarRight = () => {
 
   return (
     <div className="sm:flex gap-2 transition-opacity duration-300 opacity-100" suppressHydrationWarning>
-      <ThemeModeSelector />
       <PlayerNavDropdown />
     </div>
   )
