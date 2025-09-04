@@ -92,7 +92,7 @@ const DEFAULT_THEME: Theme = "business";
 const getSystemTheme = (): Theme => {
   if (typeof window !== "undefined" && window.matchMedia) {
     try {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "business" : "corporate";
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? DEFAULT_DARK_THEME : DEFAULT_LIGHT_THEME;
     } catch {
       return DEFAULT_THEME;
     }
@@ -116,7 +116,7 @@ const getSystemPrefersDark = (): boolean => {
 const getAnonymousThemePreference = (): Theme | null => {
   if (typeof window !== "undefined") {
     const savedAnonymousTheme = localStorage.getItem("anonymous-theme") as Theme;
-    if (savedAnonymousTheme && (savedAnonymousTheme === "business" || savedAnonymousTheme === "corporate")) {
+    if (savedAnonymousTheme && savedAnonymousTheme in AVAILABLE_THEMES) {
       return savedAnonymousTheme;
     }
   }
@@ -507,7 +507,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const setAnonymousThemeMode = (newThemeMode: 'system' | 'light' | 'dark') => {
     setThemeModeState(newThemeMode);
     
-    // For anonymous users, light = corporate, dark = business
+    // For anonymous users, use default light and dark themes
     const anonymousLightTheme: Theme = DEFAULT_LIGHT_THEME;
     const anonymousDarkTheme: Theme = DEFAULT_DARK_THEME;
     const systemTheme = getSystemTheme();

@@ -256,11 +256,11 @@ export const migrateAnonymousThemeToDualSystem = async (
         // Determine theme mode from anonymous preferences using theme metadata
         let themeMode: 'system' | 'light' | 'dark' = DEFAULT_THEME_MODE;
         
-        if (anonymousThemeMode && anonymousThemeMode !== 'system') {
-            // If explicit mode was set, use it
+        if (anonymousThemeMode && anonymousThemeMode !== 'system' && anonymousThemeMode !== null) {
+            // If explicit mode was set (not null or system), use it
             themeMode = anonymousThemeMode;
         } else {
-            // Determine mode based on theme metadata instead of hardcoded names
+            // Determine mode based on theme metadata for null/system/undefined cases
             themeMode = getThemeModeFromTheme(anonymousTheme);
         }
 
