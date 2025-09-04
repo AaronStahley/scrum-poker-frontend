@@ -2,11 +2,18 @@
 
 import { useTheme, Theme, AVAILABLE_THEMES } from "@/app/contexts/theme";
 import ThemePreview from "./ThemePreview";
+import ThemeModeSelector from "./ThemeModeSelector";
 import { useState, useEffect, useMemo } from "react";
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
 
 const ThemeSelector = () => {
-  const { theme: currentTheme, setTheme, themes } = useTheme();
+  const { 
+    theme: currentTheme, 
+    themes,
+    lightTheme,
+    darkTheme,
+    setLightTheme,
+    setDarkTheme
+  } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [isLightExpanded, setIsLightExpanded] = useState(false);
   const [isDarkExpanded, setIsDarkExpanded] = useState(false);
@@ -62,34 +69,43 @@ const ThemeSelector = () => {
     }
   }, [searchTerm]);
 
-  // Filter themes based on search term and expand state
-  const getFilteredThemes = (themeList: Theme[], isExpanded: boolean, popularThemes: Theme[]) => {
-    const filtered = themeList.filter(theme => 
-      theme.includes(searchTerm.toLowerCase()) && themes.includes(theme)
-    );
-    
-    // If search is active, show all filtered themes
+  // Get popular themes (always visible)
+  const getPopularThemes = (popularThemes: Theme[]) => {
     if (searchTerm) {
-      return filtered;
+      return popularThemes.filter(theme => 
+        theme.includes(searchTerm.toLowerCase()) && themes.includes(theme)
+      );
     }
-    
-    // Always show popular themes
-    const filteredPopular = popularThemes.filter(theme => themes.includes(theme));
-    
-    // If collapsed, show only popular themes
-    if (!isExpanded) {
-      return filteredPopular;
-    }
-    
-    // If expanded, show all themes
-    return filtered;
+    return popularThemes.filter(theme => themes.includes(theme));
   };
 
-  const filteredLightThemes = getFilteredThemes(themeCategories.allLight, isLightExpanded, themeCategories.popularLight);
-  const filteredDarkThemes = getFilteredThemes(themeCategories.allDark, isDarkExpanded, themeCategories.popularDark);
+  // Get additional themes (shown when expanded)
+  const getAdditionalThemes = (otherThemes: Theme[], isExpanded: boolean) => {
+    if (!isExpanded) {
+      return [];
+    }
+    
+    if (searchTerm) {
+      return otherThemes.filter(theme => 
+        theme.includes(searchTerm.toLowerCase()) && themes.includes(theme)
+      );
+    }
+    
+    return otherThemes.filter(theme => themes.includes(theme));
+  };
 
-  const handleThemeSelect = (theme: Theme) => {
-    setTheme(theme);
+  const popularLightThemes = getPopularThemes(themeCategories.popularLight);
+  const additionalLightThemes = getAdditionalThemes(themeCategories.otherLight, isLightExpanded);
+  const popularDarkThemes = getPopularThemes(themeCategories.popularDark);
+  const additionalDarkThemes = getAdditionalThemes(themeCategories.otherDark, isDarkExpanded);
+
+
+  const handleLightThemeSelect = (theme: Theme) => {
+    setLightTheme(theme);
+  };
+
+  const handleDarkThemeSelect = (theme: Theme) => {
+    setDarkTheme(theme);
   };
 
   const toggleLightSection = () => {
@@ -106,135 +122,180 @@ const ThemeSelector = () => {
         <h3 className="card-title text-xl mb-4">
           App Appearance
         </h3>
-        <p className="text-sm text-base-content/70 mb-4">
-          Choose your preferred theme. Changes are applied immediately and saved automatically.
+        <p className="text-sm text-base-content/70 mb-6">
+          Choose your preferred light and dark themes, then use the mode selector to switch between them.
         </p>
-        
-        {/* Current theme display */}
-        <div className="mb-4 p-3 bg-base-200 rounded-lg">
-          <div className="text-sm font-medium text-base-content/80 mb-1">
-            Current Theme
-          </div>
-          <div className="text-base font-semibold capitalize">
-            {currentTheme.replace(/[-_]/g, " ")}
+
+        {/* Theme Mode Selector */}
+        <div className="mb-6 p-4 bg-base-200 rounded-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="text-sm font-medium text-base-content/80 mb-1">
+                Theme Mode
+              </div>
+              <div className="text-xs text-base-content/60">
+                Currently showing: <span className="font-medium capitalize">{currentTheme.replace(/[-_]/g, " ")}</span>
+              </div>
+            </div>
+            <ThemeModeSelector />
           </div>
         </div>
 
-        {/* Search */}
-        <div className="mb-4">
+        {/* Global Theme Search */}
+        <div className="mb-8 p-4 bg-base-100 border border-base-300 rounded-lg">
+          <div className="text-sm font-medium text-base-content/80 mb-3">
+            🔍 Search All Themes
+          </div>
           <input
             type="text"
-            placeholder="Search themes..."
-            className="input input-bordered w-full"
+            placeholder="Search both light and dark themes..."
+            className="input input-sm input-bordered w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <div className="text-xs text-base-content/60 mt-2">
+            Search filters themes in both sections. Expand sections to see more results.
+          </div>
         </div>
 
-        {/* Theme sections */}
-        <div className="space-y-6">
-          {/* Light Themes Section */}
-          {filteredLightThemes.length > 0 && (
-            <div className="border border-base-300 rounded-lg bg-base-200 p-4">
-              <div 
-                className="flex items-center justify-between cursor-pointer mb-4"
-                onClick={toggleLightSection}
-              >
+        {/* Preferred Light Theme Section */}
+        <div className="mb-6">
+          <div className="border border-base-300 rounded-lg bg-base-200 p-4">
+            <div 
+              className="flex items-center justify-between cursor-pointer mb-4" 
+              onClick={toggleLightSection}
+            >
+              <div>
                 <h4 className="text-lg font-medium text-base-content">
-                  Light Themes
+                  Preferred Light Theme
                 </h4>
-                <div className="flex items-center gap-2">
-                  {!isLightExpanded && !searchTerm && (
-                    <span className="text-sm text-base-content/60">
-                      {themeCategories.popularLight.length} of {themeCategories.allLight.length}
-                    </span>
-                  )}
-                  <ChevronDownIcon 
-                    className={`w-5 h-5 transition-transform duration-200 ${
-                      isLightExpanded ? 'rotate-180' : ''
-                    }`} 
-                  />
-                </div>
+                <p className="text-sm text-base-content/60 mt-1">
+                  Used when in Light mode or System mode on light preference
+                </p>
               </div>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {filteredLightThemes.map((theme) => (
-                  <ThemePreview
-                    key={theme}
-                    theme={theme as Theme}
-                    isSelected={currentTheme === theme}
-                    onClick={handleThemeSelect}
-                  />
-                ))}
+              <div className="text-sm text-base-content/60">
+                Current: <span className="font-medium capitalize">{lightTheme.replace(/[-_]/g, " ")}</span>
               </div>
-              
-              {!isLightExpanded && !searchTerm && filteredLightThemes.length < themeCategories.allLight.length && (
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={toggleLightSection}
-                    className="btn btn-sm btn-outline"
-                  >
-                    View All {themeCategories.allLight.length} Light Themes
-                  </button>
-                </div>
-              )}
             </div>
-          )}
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {popularLightThemes.map((theme) => (
+                <ThemePreview
+                  key={theme}
+                  theme={theme as Theme}
+                  isSelected={lightTheme === theme}
+                  onClick={handleLightThemeSelect}
+                />
+              ))}
+            </div>
 
-          {/* Dark Themes Section */}
-          {filteredDarkThemes.length > 0 && (
-            <div className="border border-base-300 rounded-lg bg-base-200 p-4">
-              <div 
-                className="flex items-center justify-between cursor-pointer mb-4"
-                onClick={toggleDarkSection}
-              >
+            {!isLightExpanded && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={toggleLightSection}
+                  className="btn btn-sm btn-outline"
+                >
+                  View All {themeCategories.allLight.length} Light Themes
+                </button>
+              </div>
+            )}
+
+            {isLightExpanded && additionalLightThemes.length > 0 && (
+              <div className="mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {additionalLightThemes.map((theme) => (
+                    <ThemePreview
+                      key={theme}
+                      theme={theme as Theme}
+                      isSelected={lightTheme === theme}
+                      onClick={handleLightThemeSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {isLightExpanded && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={toggleLightSection}
+                  className="btn btn-sm btn-outline"
+                >
+                  Show Less
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Preferred Dark Theme Section */}
+        <div className="mb-6">
+          <div className="border border-base-300 rounded-lg bg-base-200 p-4">
+            <div 
+              className="flex items-center justify-between cursor-pointer mb-4" 
+              onClick={toggleDarkSection}
+            >
+              <div>
                 <h4 className="text-lg font-medium text-base-content">
-                  Dark Themes
+                  Preferred Dark Theme
                 </h4>
-                <div className="flex items-center gap-2">
-                  {!isDarkExpanded && !searchTerm && (
-                    <span className="text-sm text-base-content/60">
-                      {themeCategories.popularDark.length} of {themeCategories.allDark.length}
-                    </span>
-                  )}
-                  <ChevronDownIcon 
-                    className={`w-5 h-5 transition-transform duration-200 ${
-                      isDarkExpanded ? 'rotate-180' : ''
-                    }`} 
-                  />
-                </div>
+                <p className="text-sm text-base-content/60 mt-1">
+                  Used when in Dark mode or System mode on dark preference
+                </p>
               </div>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {filteredDarkThemes.map((theme) => (
-                  <ThemePreview
-                    key={theme}
-                    theme={theme as Theme}
-                    isSelected={currentTheme === theme}
-                    onClick={handleThemeSelect}
-                  />
-                ))}
+              <div className="text-sm text-base-content/60">
+                Current: <span className="font-medium capitalize">{darkTheme.replace(/[-_]/g, " ")}</span>
               </div>
-              
-              {!isDarkExpanded && !searchTerm && filteredDarkThemes.length < themeCategories.allDark.length && (
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={toggleDarkSection}
-                    className="btn btn-sm btn-outline"
-                  >
-                    View All {themeCategories.allDark.length} Dark Themes
-                  </button>
-                </div>
-              )}
             </div>
-          )}
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {popularDarkThemes.map((theme) => (
+                <ThemePreview
+                  key={theme}
+                  theme={theme as Theme}
+                  isSelected={darkTheme === theme}
+                  onClick={handleDarkThemeSelect}
+                />
+              ))}
+            </div>
 
-          {/* No results */}
-          {searchTerm && filteredLightThemes.length === 0 && filteredDarkThemes.length === 0 && (
-            <div className="text-center py-8 text-base-content/60">
-              No themes found matching &ldquo;{searchTerm}&rdquo;
-            </div>
-          )}
+            {!isDarkExpanded && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={toggleDarkSection}
+                  className="btn btn-sm btn-outline"
+                >
+                  View All {themeCategories.allDark.length} Dark Themes
+                </button>
+              </div>
+            )}
+
+            {isDarkExpanded && additionalDarkThemes.length > 0 && (
+              <div className="mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {additionalDarkThemes.map((theme) => (
+                    <ThemePreview
+                      key={theme}
+                      theme={theme as Theme}
+                      isSelected={darkTheme === theme}
+                      onClick={handleDarkThemeSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {isDarkExpanded && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={toggleDarkSection}
+                  className="btn btn-sm btn-outline"
+                >
+                  Show Less
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Theme count */}

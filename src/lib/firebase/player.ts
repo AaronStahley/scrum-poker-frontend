@@ -10,6 +10,7 @@ import {
     getDocs, 
 } from "firebase/firestore";
 import { Player } from "@/types/player";
+import { Theme } from "@/app/contexts/theme";
 
 // Check if a player exists
 export const playerExists = async (playerId: string) => {
@@ -75,4 +76,174 @@ export const updatePlayers = async (roomId: string, playerData: Partial<Player>)
 export const updatePlayerDisplayName = async (playerId: string, newDisplayName: string) => {
     const playerRef = doc(db, 'players', playerId);
     await setDoc(playerRef, { name: newDisplayName }, { merge: true });
+};
+
+// Get a player's theme preference
+export const getPlayerTheme = async (playerId: string): Promise<Theme | null> => {
+    try {
+        const playerRef = doc(db, 'players', playerId);
+        const playerSnap = await getDoc(playerRef);
+
+        if (!playerSnap.exists()) {
+            return null;
+        }
+
+        const playerData = playerSnap.data() as Player;
+        return playerData.preferences?.theme || null;
+    } catch (error) {
+        console.error('Error getting player theme:', error);
+        return null;
+    }
+};
+
+// Set a player's theme preference
+export const setPlayerTheme = async (playerId: string, theme: Theme): Promise<void> => {
+    try {
+        const playerRef = doc(db, 'players', playerId);
+        await setDoc(playerRef, { 
+            preferences: { 
+                theme 
+            } 
+        }, { merge: true });
+    } catch (error) {
+        console.error('Error setting player theme:', error);
+        throw error;
+    }
+};
+
+
+// Get a player's light theme preference
+export const getPlayerLightTheme = async (playerId: string): Promise<Theme | null> => {
+    try {
+        const playerRef = doc(db, 'players', playerId);
+        const playerSnap = await getDoc(playerRef);
+
+        if (!playerSnap.exists()) {
+            return null;
+        }
+
+        const playerData = playerSnap.data() as Player;
+        return playerData.preferences?.lightTheme || null;
+    } catch (error) {
+        console.error('Error getting player light theme:', error);
+        return null;
+    }
+};
+
+// Set a player's light theme preference
+export const setPlayerLightTheme = async (playerId: string, lightTheme: Theme): Promise<void> => {
+    try {
+        const playerRef = doc(db, 'players', playerId);
+        await setDoc(playerRef, { 
+            preferences: { 
+                lightTheme 
+            } 
+        }, { merge: true });
+    } catch (error) {
+        console.error('Error setting player light theme:', error);
+        throw error;
+    }
+};
+
+// Get a player's dark theme preference
+export const getPlayerDarkTheme = async (playerId: string): Promise<Theme | null> => {
+    try {
+        const playerRef = doc(db, 'players', playerId);
+        const playerSnap = await getDoc(playerRef);
+
+        if (!playerSnap.exists()) {
+            return null;
+        }
+
+        const playerData = playerSnap.data() as Player;
+        return playerData.preferences?.darkTheme || null;
+    } catch (error) {
+        console.error('Error getting player dark theme:', error);
+        return null;
+    }
+};
+
+// Set a player's dark theme preference
+export const setPlayerDarkTheme = async (playerId: string, darkTheme: Theme): Promise<void> => {
+    try {
+        const playerRef = doc(db, 'players', playerId);
+        await setDoc(playerRef, { 
+            preferences: { 
+                darkTheme 
+            } 
+        }, { merge: true });
+    } catch (error) {
+        console.error('Error setting player dark theme:', error);
+        throw error;
+    }
+};
+
+// Get a player's theme mode preference
+export const getPlayerThemeMode = async (playerId: string): Promise<'system' | 'light' | 'dark' | null> => {
+    try {
+        const playerRef = doc(db, 'players', playerId);
+        const playerSnap = await getDoc(playerRef);
+
+        if (!playerSnap.exists()) {
+            return null;
+        }
+
+        const playerData = playerSnap.data() as Player;
+        return playerData.preferences?.themeMode || null;
+    } catch (error) {
+        console.error('Error getting player theme mode:', error);
+        return null;
+    }
+};
+
+// Set a player's theme mode preference
+export const setPlayerThemeMode = async (playerId: string, themeMode: 'system' | 'light' | 'dark'): Promise<void> => {
+    try {
+        const playerRef = doc(db, 'players', playerId);
+        await setDoc(playerRef, { 
+            preferences: { 
+                themeMode 
+            } 
+        }, { merge: true });
+    } catch (error) {
+        console.error('Error setting player theme mode:', error);
+        throw error;
+    }
+};
+
+
+// Migrate anonymous theme preferences to dual theme system
+export const migrateAnonymousThemeToDualSystem = async (playerId: string, anonymousTheme: Theme, anonymousThemeMode?: string): Promise<void> => {
+    try {
+        // Migrate to dual system based on anonymous preferences
+        const lightTheme: Theme = 'corporate';
+        const darkTheme: Theme = 'business';
+        
+        // Determine theme mode from anonymous preferences
+        let themeMode: 'system' | 'light' | 'dark' = 'system';
+        if (anonymousThemeMode === 'light' || anonymousTheme === 'corporate') {
+            themeMode = 'light';
+        } else if (anonymousThemeMode === 'dark' || anonymousTheme === 'business') {
+            themeMode = 'dark';
+        }
+
+        // Set the dual theme preferences using new structure
+        const playerRef = doc(db, 'players', playerId);
+        await setDoc(playerRef, {
+            preferences: {
+                lightTheme,
+                darkTheme,
+                themeMode
+            }
+        }, { merge: true });
+
+        // Clear anonymous theme preferences from localStorage
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("anonymous-theme");
+            localStorage.removeItem("anonymous-theme-mode");
+        }
+    } catch (error) {
+        console.error('Error migrating anonymous theme to dual system:', error);
+        throw error;
+    }
 };
