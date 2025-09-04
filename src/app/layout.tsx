@@ -35,6 +35,18 @@ export default function RootLayout({
               __html: `
                 (function() {
                   try {
+                    // Safe system preference detection for SSR
+                    function getSystemPrefersDark() {
+                      if (typeof window !== "undefined" && window.matchMedia) {
+                        try {
+                          return window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        } catch {
+                          return false;
+                        }
+                      }
+                      return false;
+                    }
+                    
                     // Helper function to resolve theme based on dual theme system
                     function resolveThemeFromMode(themeMode, lightTheme, darkTheme, systemPrefersDark) {
                       switch (themeMode) {
@@ -48,7 +60,7 @@ export default function RootLayout({
                       }
                     }
                     
-                    const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    const systemPrefersDark = getSystemPrefersDark();
                     
                     // Check for cached resolved theme first (fastest path)
                     const cachedTheme = localStorage.getItem('app-theme-resolved');
@@ -75,8 +87,8 @@ export default function RootLayout({
                     return;
                     
                   } catch (e) {
-                    // Final fallback
-                    const fallbackTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'business' : 'corporate';
+                    // Final fallback using safe detection
+                    const fallbackTheme = getSystemPrefersDark() ? 'business' : 'corporate';
                     document.documentElement.setAttribute('data-theme', fallbackTheme);
                   }
                 })();

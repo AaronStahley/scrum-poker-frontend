@@ -66,6 +66,7 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
   themes: readonly Theme[];
   getSystemTheme: () => Theme;
+  getSystemPrefersDark: () => boolean;
   themeLoading: boolean;
   themeSource: ThemeSource;
   lightTheme: Theme;
@@ -91,6 +92,18 @@ const getSystemTheme = (): Theme => {
     }
   }
   return DEFAULT_THEME;
+};
+
+// Function to safely detect if system prefers dark theme
+const getSystemPrefersDark = (): boolean => {
+  if (typeof window !== "undefined" && window.matchMedia) {
+    try {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } catch {
+      return false;
+    }
+  }
+  return false;
 };
 
 // Function to get anonymous theme preference (separate from authenticated user themes)
@@ -394,7 +407,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       setLightThemeState(newLightTheme);
       
       // Update actual theme if we're in light mode or if system mode would use this light theme
-      const shouldUpdateTheme = themeMode === 'light' || (themeMode === 'system' && !window.matchMedia("(prefers-color-scheme: dark)").matches);
+      const shouldUpdateTheme = themeMode === 'light' || (themeMode === 'system' && !getSystemPrefersDark());
       if (shouldUpdateTheme) {
         setThemeState(newLightTheme);
         document.documentElement.setAttribute("data-theme", newLightTheme);
@@ -410,7 +423,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       // Update resolved theme cache if this theme is currently active
       if (shouldUpdateTheme) {
         localStorage.setItem('app-theme-resolved', newLightTheme);
-        const systemState = window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light';
+        const systemState = getSystemPrefersDark() ? 'dark' : 'light';
         localStorage.setItem('app-theme-system-state', systemState);
       }
     } catch (error) {
@@ -427,7 +440,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       setDarkThemeState(newDarkTheme);
       
       // Update actual theme if we're in dark mode or if system mode would use this dark theme
-      const shouldUpdateTheme = themeMode === 'dark' || (themeMode === 'system' && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      const shouldUpdateTheme = themeMode === 'dark' || (themeMode === 'system' && getSystemPrefersDark());
       if (shouldUpdateTheme) {
         setThemeState(newDarkTheme);
         document.documentElement.setAttribute("data-theme", newDarkTheme);
@@ -443,7 +456,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       // Update resolved theme cache if this theme is currently active
       if (shouldUpdateTheme) {
         localStorage.setItem('app-theme-resolved', newDarkTheme);
-        const systemState = window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light';
+        const systemState = getSystemPrefersDark() ? 'dark' : 'light';
         localStorage.setItem('app-theme-system-state', systemState);
       }
     } catch (error) {
@@ -507,6 +520,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         setTheme, 
         themes: Object.keys(AVAILABLE_THEMES) as readonly Theme[],
         getSystemTheme,
+        getSystemPrefersDark,
         themeLoading,
         themeSource,
         lightTheme,

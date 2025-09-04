@@ -6,16 +6,17 @@ import { ComputerDesktopIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outl
 import { useState, useEffect } from "react";
 
 const ThemeModeSelector = () => {
-  const { themeMode, setThemeMode, setAnonymousThemeMode } = useTheme();
+  const { themeMode, setThemeMode, setAnonymousThemeMode, getSystemPrefersDark } = useTheme();
   const { player } = useAuth();
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
 
-  // Detect system theme preference
+  // Detect system theme preference using safe theme context utility
   useEffect(() => {
+    setSystemPrefersDark(getSystemPrefersDark());
+    
     if (typeof window !== "undefined" && window.matchMedia) {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      setSystemPrefersDark(mediaQuery.matches);
-
+      
       const handleChange = (e: MediaQueryListEvent) => {
         setSystemPrefersDark(e.matches);
       };
@@ -23,7 +24,7 @@ const ThemeModeSelector = () => {
       mediaQuery.addEventListener("change", handleChange);
       return () => mediaQuery.removeEventListener("change", handleChange);
     }
-  }, []);
+  }, [getSystemPrefersDark]);
 
   const handleThemeModeChange = (newMode: 'system' | 'light' | 'dark') => {
     if (player && !player.isAnonymous) {

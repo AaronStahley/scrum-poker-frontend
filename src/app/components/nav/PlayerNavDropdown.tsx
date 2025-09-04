@@ -10,15 +10,16 @@ import { getVersionDisplay } from "@/lib/version";
 import { useTheme } from "@/app/contexts/theme";
 
 const PlayerNavDropdown = () => {
-  const { themeMode, setThemeMode } = useTheme();
+  const { themeMode, setThemeMode, getSystemPrefersDark } = useTheme();
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
 
-  // Detect system theme preference
+  // Detect system theme preference using safe theme context utility
   useEffect(() => {
+    setSystemPrefersDark(getSystemPrefersDark());
+    
     if (typeof window !== "undefined" && window.matchMedia) {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      setSystemPrefersDark(mediaQuery.matches);
-
+      
       const handleChange = (e: MediaQueryListEvent) => {
         setSystemPrefersDark(e.matches);
       };
@@ -26,7 +27,7 @@ const PlayerNavDropdown = () => {
       mediaQuery.addEventListener("change", handleChange);
       return () => mediaQuery.removeEventListener("change", handleChange);
     }
-  }, []);
+  }, [getSystemPrefersDark]);
 
   const handleLinkClick = () => {
     // Close dropdown by removing focus from active element
