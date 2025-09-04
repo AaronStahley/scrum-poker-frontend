@@ -11,6 +11,12 @@ import {
 } from "firebase/firestore";
 import { Player } from "@/types/player";
 import { Theme } from "@/app/contexts/theme";
+import { 
+    DEFAULT_LIGHT_THEME, 
+    DEFAULT_DARK_THEME,
+    DEFAULT_THEME_MODE,
+    getThemeModeFromTheme
+} from "@/app/constants/themes";
 
 // Check if a player exists
 export const playerExists = async (playerId: string) => {
@@ -100,10 +106,16 @@ export const getPlayerTheme = async (playerId: string): Promise<Theme | null> =>
 export const setPlayerTheme = async (playerId: string, theme: Theme): Promise<void> => {
     try {
         const playerRef = doc(db, 'players', playerId);
+        
+        // Read current preferences to preserve existing fields
+        const currentDoc = await getDoc(playerRef);
+        const currentPreferences = currentDoc.data()?.preferences || {};
+        
         await setDoc(playerRef, { 
-            preferences: { 
-                theme 
-            } 
+            preferences: {
+                ...currentPreferences,
+                theme
+            }
         }, { merge: true });
     } catch (error) {
         console.error('Error setting player theme:', error);
@@ -134,10 +146,16 @@ export const getPlayerLightTheme = async (playerId: string): Promise<Theme | nul
 export const setPlayerLightTheme = async (playerId: string, lightTheme: Theme): Promise<void> => {
     try {
         const playerRef = doc(db, 'players', playerId);
+        
+        // Read current preferences to preserve existing fields
+        const currentDoc = await getDoc(playerRef);
+        const currentPreferences = currentDoc.data()?.preferences || {};
+        
         await setDoc(playerRef, { 
-            preferences: { 
-                lightTheme 
-            } 
+            preferences: {
+                ...currentPreferences,
+                lightTheme
+            }
         }, { merge: true });
     } catch (error) {
         console.error('Error setting player light theme:', error);
@@ -167,10 +185,16 @@ export const getPlayerDarkTheme = async (playerId: string): Promise<Theme | null
 export const setPlayerDarkTheme = async (playerId: string, darkTheme: Theme): Promise<void> => {
     try {
         const playerRef = doc(db, 'players', playerId);
+        
+        // Read current preferences to preserve existing fields
+        const currentDoc = await getDoc(playerRef);
+        const currentPreferences = currentDoc.data()?.preferences || {};
+        
         await setDoc(playerRef, { 
-            preferences: { 
-                darkTheme 
-            } 
+            preferences: {
+                ...currentPreferences,
+                darkTheme
+            }
         }, { merge: true });
     } catch (error) {
         console.error('Error setting player dark theme:', error);
@@ -200,10 +224,16 @@ export const getPlayerThemeMode = async (playerId: string): Promise<'system' | '
 export const setPlayerThemeMode = async (playerId: string, themeMode: 'system' | 'light' | 'dark'): Promise<void> => {
     try {
         const playerRef = doc(db, 'players', playerId);
+        
+        // Read current preferences to preserve existing fields
+        const currentDoc = await getDoc(playerRef);
+        const currentPreferences = currentDoc.data()?.preferences || {};
+        
         await setDoc(playerRef, { 
-            preferences: { 
-                themeMode 
-            } 
+            preferences: {
+                ...currentPreferences,
+                themeMode
+            }
         }, { merge: true });
     } catch (error) {
         console.error('Error setting player theme mode:', error);
@@ -213,24 +243,37 @@ export const setPlayerThemeMode = async (playerId: string, themeMode: 'system' |
 
 
 // Migrate anonymous theme preferences to dual theme system
-export const migrateAnonymousThemeToDualSystem = async (playerId: string, anonymousTheme: Theme, anonymousThemeMode?: string): Promise<void> => {
+export const migrateAnonymousThemeToDualSystem = async (
+    playerId: string, 
+    anonymousTheme: Theme, 
+    anonymousThemeMode?: 'system' | 'light' | 'dark' | null
+): Promise<void> => {
     try {
-        // Migrate to dual system based on anonymous preferences
-        const lightTheme: Theme = 'corporate';
-        const darkTheme: Theme = 'business';
+        // Use default themes for dual system
+        const lightTheme: Theme = DEFAULT_LIGHT_THEME;
+        const darkTheme: Theme = DEFAULT_DARK_THEME;
         
-        // Determine theme mode from anonymous preferences
-        let themeMode: 'system' | 'light' | 'dark' = 'system';
-        if (anonymousThemeMode === 'light' || anonymousTheme === 'corporate') {
-            themeMode = 'light';
-        } else if (anonymousThemeMode === 'dark' || anonymousTheme === 'business') {
-            themeMode = 'dark';
+        // Determine theme mode from anonymous preferences using theme metadata
+        let themeMode: 'system' | 'light' | 'dark' = DEFAULT_THEME_MODE;
+        
+        if (anonymousThemeMode && anonymousThemeMode !== 'system') {
+            // If explicit mode was set, use it
+            themeMode = anonymousThemeMode;
+        } else {
+            // Determine mode based on theme metadata instead of hardcoded names
+            themeMode = getThemeModeFromTheme(anonymousTheme);
         }
 
-        // Set the dual theme preferences using new structure
+        // Set the dual theme preferences using proper nested object to preserve other preferences
         const playerRef = doc(db, 'players', playerId);
+        
+        // Read current preferences to preserve existing fields
+        const currentDoc = await getDoc(playerRef);
+        const currentPreferences = currentDoc.data()?.preferences || {};
+        
         await setDoc(playerRef, {
             preferences: {
+                ...currentPreferences,
                 lightTheme,
                 darkTheme,
                 themeMode

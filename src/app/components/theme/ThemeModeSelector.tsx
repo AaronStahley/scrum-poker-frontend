@@ -4,6 +4,7 @@ import { useTheme } from "@/app/contexts/theme";
 import { useAuth } from "@/app/contexts/auth";
 import { ComputerDesktopIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
+import { DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME, getThemeDisplayName } from "@/app/constants/themes";
 
 const ThemeModeSelector = () => {
   const { themeMode, setThemeMode, setAnonymousThemeMode, getSystemPrefersDark } = useTheme();
@@ -45,13 +46,17 @@ const ThemeModeSelector = () => {
       value: 'light' as const,
       label: 'Light',
       icon: SunIcon,
-      description: player && !player.isAnonymous ? 'Use light theme' : 'Corporate theme'
+      description: player && !player.isAnonymous 
+        ? 'Use light theme' 
+        : `${getThemeDisplayName(DEFAULT_LIGHT_THEME)} theme`
     },
     {
       value: 'dark' as const,
       label: 'Dark',
       icon: MoonIcon,
-      description: player && !player.isAnonymous ? 'Use dark theme' : 'Business theme'
+      description: player && !player.isAnonymous 
+        ? 'Use dark theme' 
+        : `${getThemeDisplayName(DEFAULT_DARK_THEME)} theme`
     }
   ];
 

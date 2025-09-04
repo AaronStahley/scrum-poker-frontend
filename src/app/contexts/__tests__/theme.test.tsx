@@ -226,7 +226,7 @@ describe('ThemeProvider', () => {
         expect(result.current.themeSource).toBe('user')
       })
       
-      expect(mockMigrateAnonymousThemeToDualSystem).toHaveBeenCalledWith('user123', 'corporate', undefined)
+      expect(mockMigrateAnonymousThemeToDualSystem).toHaveBeenCalledWith('user123', 'corporate', null)
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('anonymous-theme')
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('anonymous-theme-mode')
     })

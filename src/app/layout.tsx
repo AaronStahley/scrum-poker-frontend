@@ -6,6 +6,7 @@ import AuthProviderWrapper from "../app/components/auth/AuthProviderWrapper";
 import NewPlayerModal from "./components/player/NewPlayerModal";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { ThemeProvider } from "./contexts/theme";
+import { DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME } from "./constants/themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -74,8 +75,8 @@ export default function RootLayout({
                     }
                     
                     // Try to resolve using stored dual theme preferences
-                    const lightTheme = localStorage.getItem('user-light-theme') || 'corporate';
-                    const darkTheme = localStorage.getItem('user-dark-theme') || 'business';
+                    const lightTheme = localStorage.getItem('user-light-theme') || '${DEFAULT_LIGHT_THEME}';
+                    const darkTheme = localStorage.getItem('user-dark-theme') || '${DEFAULT_DARK_THEME}';
                     const themeMode = localStorage.getItem('user-theme-mode') || 'system';
                     
                     const resolvedTheme = resolveThemeFromMode(themeMode, lightTheme, darkTheme, systemPrefersDark);
@@ -88,7 +89,7 @@ export default function RootLayout({
                     
                   } catch (e) {
                     // Final fallback using safe detection
-                    const fallbackTheme = getSystemPrefersDark() ? 'business' : 'corporate';
+                    const fallbackTheme = getSystemPrefersDark() ? '${DEFAULT_DARK_THEME}' : '${DEFAULT_LIGHT_THEME}';
                     document.documentElement.setAttribute('data-theme', fallbackTheme);
                   }
                 })();

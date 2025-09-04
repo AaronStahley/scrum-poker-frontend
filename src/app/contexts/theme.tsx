@@ -13,6 +13,12 @@ import {
   setPlayerThemeMode,
   migrateAnonymousThemeToDualSystem
 } from "@/lib/firebase/player";
+import { 
+  DEFAULT_LIGHT_THEME, 
+  DEFAULT_DARK_THEME,
+  isThemeDark,
+  getThemeModeFromTheme
+} from "@/app/constants/themes";
 
 // Available DaisyUI themes with metadata
 export const AVAILABLE_THEMES = {
@@ -143,7 +149,7 @@ const resolveThemeFromMode = (
     case 'system':
     default:
       // For system mode, use lightTheme or darkTheme based on system preference
-      return systemTheme === 'business' ? darkTheme : lightTheme;
+      return isThemeDark(systemTheme) ? darkTheme : lightTheme;
   }
 };
 
@@ -152,8 +158,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
   const [themeLoading, setThemeLoading] = useState(true);
   const [themeSource, setThemeSource] = useState<ThemeSource>('default');
-  const [lightTheme, setLightThemeState] = useState<Theme>('corporate');
-  const [darkTheme, setDarkThemeState] = useState<Theme>('business');
+  const [lightTheme, setLightThemeState] = useState<Theme>(DEFAULT_LIGHT_THEME);
+  const [darkTheme, setDarkThemeState] = useState<Theme>(DEFAULT_DARK_THEME);
   const [themeMode, setThemeModeState] = useState<'system' | 'light' | 'dark'>('system');
 
   // Initialize dual theme system based on current auth state
@@ -164,8 +170,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       setThemeLoading(true);
 
       try {
-        let currentLightTheme: Theme = 'corporate';
-        let currentDarkTheme: Theme = 'business';
+        let currentLightTheme: Theme = DEFAULT_LIGHT_THEME;
+        let currentDarkTheme: Theme = DEFAULT_DARK_THEME;
         let currentThemeMode: 'system' | 'light' | 'dark' = 'system';
         let source: ThemeSource = 'default';
 
@@ -180,8 +186,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
             if (playerLightTheme || playerDarkTheme || playerThemeMode) {
               // User has dual theme preferences
-              currentLightTheme = playerLightTheme || 'corporate';
-              currentDarkTheme = playerDarkTheme || 'business';
+              currentLightTheme = playerLightTheme || DEFAULT_LIGHT_THEME;
+              currentDarkTheme = playerDarkTheme || DEFAULT_DARK_THEME;
               currentThemeMode = playerThemeMode || 'system';
               source = 'user';
             } else {
@@ -193,21 +199,21 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
               if (anonymousTheme || anonymousThemeMode) {
                 // Migrate anonymous dual theme preferences
                 try {
-                  await migrateAnonymousThemeToDualSystem(player.uid, anonymousTheme || getSystemTheme(), anonymousThemeMode || undefined);
+                  await migrateAnonymousThemeToDualSystem(player.uid, anonymousTheme || getSystemTheme(), anonymousThemeMode);
                   // Reload the preferences after migration
                   const [newLightTheme, newDarkTheme, newThemeMode] = await Promise.all([
                     getPlayerLightTheme(player.uid),
                     getPlayerDarkTheme(player.uid),
                     getPlayerThemeMode(player.uid)
                   ]);
-                  currentLightTheme = newLightTheme || 'corporate';
-                  currentDarkTheme = newDarkTheme || 'business';
+                  currentLightTheme = newLightTheme || DEFAULT_LIGHT_THEME;
+                  currentDarkTheme = newDarkTheme || DEFAULT_DARK_THEME;
                   currentThemeMode = newThemeMode || 'system';
                   source = 'user';
                 } catch (migrationError) {
                   console.warn('Failed to migrate anonymous dual theme:', migrationError);
                   // Use anonymous preferences temporarily
-                  currentThemeMode = anonymousThemeMode || (anonymousTheme === 'business' ? 'dark' : anonymousTheme === 'corporate' ? 'light' : 'system');
+                  currentThemeMode = anonymousThemeMode || (anonymousTheme ? getThemeModeFromTheme(anonymousTheme) : 'system');
                   source = 'anonymous';
                 }
               } else if (playerTheme && playerTheme in AVAILABLE_THEMES) {
@@ -261,7 +267,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             source = 'anonymous';
           } else if (anonymousTheme) {
             // Legacy anonymous theme - convert to theme mode
-            currentThemeMode = anonymousTheme === 'business' ? 'dark' : anonymousTheme === 'corporate' ? 'light' : 'system';
+            currentThemeMode = getThemeModeFromTheme(anonymousTheme);
             source = 'anonymous';
           } else {
             currentThemeMode = 'system';
@@ -293,7 +299,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem('user-theme-mode', currentThemeMode);
           }
           localStorage.setItem('app-theme-resolved', resolvedTheme);
-          localStorage.setItem('app-theme-system-state', systemTheme === 'business' ? 'dark' : 'light');
+          localStorage.setItem('app-theme-system-state', isThemeDark(systemTheme) ? 'dark' : 'light');
         }
       } catch (error) {
         console.error('Error initializing dual theme:', error);
@@ -490,7 +496,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       
       // Update resolved theme cache
       localStorage.setItem('app-theme-resolved', resolvedTheme);
-      localStorage.setItem('app-theme-system-state', systemTheme === 'business' ? 'dark' : 'light');
+      localStorage.setItem('app-theme-system-state', isThemeDark(systemTheme) ? 'dark' : 'light');
     } catch (error) {
       console.error('Error setting theme mode:', error);
     } finally {
@@ -502,8 +508,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setThemeModeState(newThemeMode);
     
     // For anonymous users, light = corporate, dark = business
-    const anonymousLightTheme: Theme = 'corporate';
-    const anonymousDarkTheme: Theme = 'business';
+    const anonymousLightTheme: Theme = DEFAULT_LIGHT_THEME;
+    const anonymousDarkTheme: Theme = DEFAULT_DARK_THEME;
     const systemTheme = getSystemTheme();
     const resolvedTheme = resolveThemeFromMode(newThemeMode, anonymousLightTheme, anonymousDarkTheme, systemTheme);
     
