@@ -1,6 +1,7 @@
 "use client";
 
 import { firebaseErrorMessages } from "@/lib/firebase/firebaseErrorMessages";
+import { updatePlayerDisplayName } from "@/lib/firebase/player";
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase/firebase";
 import { 
@@ -9,7 +10,10 @@ import {
   EmailAuthProvider, 
   linkWithCredential,
   signInAnonymously,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail,
+  updatePassword,
+  reauthenticateWithCredential
 } from "firebase/auth";
 
 interface AuthContextType {
@@ -24,6 +28,9 @@ interface AuthContextType {
   playerCreated: boolean;
   pendingRoomId: string | null;
   setPendingRoomId: (roomId: string | null) => void;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
+  updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updateDisplayName: (newDisplayName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -31,6 +38,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [player, setPlayer] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [showCreateNewPlayerModal, setShowCreateNewPlayerModal] = useState(false);
   const [pendingRoomId, setPendingRoomId] = useState<string | null>(null);
   const [playerCreated, setPlayerCreated] = useState(false);
@@ -39,10 +47,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setPlayer(firebaseUser);
       setLoading(false);
+      setIsInitialized(true);
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Note: Don't return early here as it prevents context from being available during SSR
 
   const upgradeAnonymousPlayer = async (email: string, password: string) => {
     if (!player) {
@@ -83,6 +94,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error(errorMessage);
     }
   }
+
+  const sendPasswordResetEmailToUser = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (err: unknown) {
+      const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to send password reset email";
+      throw new Error(errorMessage);
+    }
+  };
+
+  const updateUserPassword = async (currentPassword: string, newPassword: string) => {
+    if (!player) {
+      throw new Error("No user is currently logged in");
+    }
+
+    try {
+      // Re-authenticate the user with their current password
+      const credential = EmailAuthProvider.credential(player.email!, currentPassword);
+      await reauthenticateWithCredential(player, credential);
+      
+      // Update to the new password
+      await updatePassword(player, newPassword);
+      
+    } catch (err: unknown) {
+      const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to update password";
+      throw new Error(errorMessage);
+    }
+  };
+
+  const updateDisplayName = async (newDisplayName: string) => {
+    if (!player) {
+      throw new Error("No user is currently logged in");
+    }
+
+    if (!newDisplayName.trim()) {
+      throw new Error("Display name cannot be empty");
+    }
+
+    try {
+      // Update the user's display name in Firebase Auth
+      await updateProfile(player, { displayName: newDisplayName.trim() });
+      
+      // Reload the user to get the updated profile
+      await auth.currentUser?.reload();
+      
+      // Also update the Firestore player record (creates document if it doesn't exist)
+      await updatePlayerDisplayName(player.uid, newDisplayName.trim());
+      
+    } catch (err: unknown) {
+      const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to update display name";
+      throw new Error(errorMessage);
+    }
+  };
   
   return (
     <AuthContext.Provider value={{ 
@@ -96,9 +160,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setPlayerCreated, 
       playerCreated, 
       pendingRoomId, 
-      setPendingRoomId 
+      setPendingRoomId,
+      sendPasswordResetEmail: sendPasswordResetEmailToUser,
+      updateUserPassword,
+      updateDisplayName
     }}>
-      {children}
+      <div suppressHydrationWarning={!isInitialized}>
+        {children}
+      </div>
     </AuthContext.Provider>
   );
 };

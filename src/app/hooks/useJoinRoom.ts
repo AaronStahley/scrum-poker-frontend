@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/auth";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useCallback } from "react";
 import { addPlayerToRoom } from "@/lib/firebase/room";
 import { createPlayer, playerExists, updatePlayer } from "@/lib/firebase/player";
 
@@ -22,7 +22,7 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
     pendingRoomId 
   } = useAuth();
 
-  const joinRoom = async (roomId: string) => {
+  const joinRoom = useCallback(async (roomId: string) => {
     console.log("Joining room:", roomId);
 
     if (!player) {
@@ -62,7 +62,7 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
     } finally {
       setLoadingRoom(false);
     }
-  };
+  }, [player, setShowCreateNewPlayerModal, setPendingRoomId, router, startTransition]);
 
   useEffect(() => {
     if (!loading){ 
@@ -75,7 +75,7 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
         setPendingRoomId(null);
       }
     }
-  }, [autoJoinRoomId, loading, playerCreated, pendingRoomId, setPendingRoomId]);
+  }, [autoJoinRoomId, loading, playerCreated, pendingRoomId, setPendingRoomId, joinRoom]);
 
   return { joinRoom, loadingRoom, isPending, error };
 };

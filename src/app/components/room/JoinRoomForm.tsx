@@ -7,12 +7,14 @@ import { getPreviousRooms } from "@/lib/firebase/room";
 import { useAuth } from "@/app/contexts/auth";
 import { Room } from "@/types/room";
 import  LoadOverlay from "@/app/components/loading/LoadingOverlay";
+import SkeletonDropdownArrow from "@/app/components/loading/SkeletonDropdownArrow";
 
 const JoinRoom = () => {
   const [roomId, setRoomId] = useState("");
   const { joinRoom, loadingRoom, isPending, error: joinRoomError } = useJoinRoom();
   const [showDropdown, setShowDropdown] = useState(false);
   const [previousRooms, setPreviousRooms] = useState<Room[]>([]);
+  const [loadingPreviousRooms, setLoadingPreviousRooms] = useState(false);
   const { player, loading: playerLoading } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -20,14 +22,21 @@ const JoinRoom = () => {
     if (!player) { 
       setRoomId("");
       setPreviousRooms([]);
+      setLoadingPreviousRooms(false);
       return;
     }
 
     if (playerLoading || !player) return;
     
-    getPreviousRooms(player.uid).then(setPreviousRooms).catch((error) => {
-      console.error("Error fetching previous rooms:", error);
-    });
+    setLoadingPreviousRooms(true);
+    getPreviousRooms(player.uid)
+      .then(setPreviousRooms)
+      .catch((error) => {
+        console.error("Error fetching previous rooms:", error);
+      })
+      .finally(() => {
+        setLoadingPreviousRooms(false);
+      });
   }, [playerLoading, player]);
 
   useEffect(() => {
@@ -52,14 +61,14 @@ const JoinRoom = () => {
 
   return (
     <>
-      {(playerLoading || loadingRoom || isPending) && <LoadOverlay />}
+      {(loadingRoom || isPending) && <LoadOverlay />}
       <form onSubmit={handleJoinRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
         <div className="relative min-w-64" ref={dropdownRef}>
           <label className="input input-bordered flex items-center gap-2 w-full">
             <input
               type="text"
               className="flex-1 text-base"
-              placeholder="Existing Room Name"
+              placeholder="Room ID or Name"
               value={previousRooms.find((r) => r.id === roomId)?.name || roomId}
               onChange={(e) => setRoomId(e.target.value)}
               onFocus={() => setShowDropdown(true)}
@@ -67,12 +76,16 @@ const JoinRoom = () => {
               minLength={20}
               maxLength={20}
             />
-            {previousRooms.length > 0 && (
-              <ChevronDownIcon className="w-6 h-6 cursor-pointer" onClick={() => setShowDropdown(!showDropdown)} />
+            {loadingPreviousRooms && player ? (
+              <SkeletonDropdownArrow />
+            ) : (
+              previousRooms.length > 0 && (
+                <ChevronDownIcon className="w-6 h-6 cursor-pointer" onClick={() => setShowDropdown(!showDropdown)} />
+              )
             )}          
           </label>
 
-          {showDropdown && previousRooms.length > 0 && (
+          {showDropdown && previousRooms.length > 0 && !loadingPreviousRooms && (
             <ul className="absolute z-10 mt-2 w-full bg-base-100 shadow rounded-box p-2">
               {(
                 previousRooms.map((room) => (
