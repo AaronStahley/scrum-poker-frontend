@@ -15,7 +15,7 @@
     "@heroicons/react": "^2.2.0",
     "@react-oauth/google": "^0.12.1",
     "firebase": "^11.4.0",
-    "next": "15.2.1",
+    "next": "15.2.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
