@@ -14,6 +14,7 @@ import { useDebouncedCallback } from "@/app/hooks/useDebounce";
 import { useErrorHandler, getFirebaseErrorMessage } from "@/app/hooks/useErrorHandler";
 import ErrorToast from "@/app/components/error/ErrorToast";
 import HostSettingsModal from "./HostSettingsModal";
+import VoteStatistics from "./VoteStatistics";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { PlayerRemovalPermission } from "@/types/room";
 
@@ -187,7 +188,8 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
           </button>
         )}
       </div>
-      <PlayerTable 
+      {revealVotes && <VoteStatistics players={players} />}
+      <PlayerTable
         initislSortDirection="asc"
         roomOwnerId={room?.createdBy}
         currentPlayerId={playerAuth?.uid ?? null}

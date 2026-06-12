@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.4.0] - 2026-06-12
+
+### 🆕 New Features
+
+#### Vote Statistics
+- **Vote Summary Bar**: After votes are revealed, a summary bar now appears above the player table showing key statistics at a glance
+- **Recommended Story Point**: Displays the nearest valid story point (from the Fibonacci-based scale) to the average of all numeric votes — gives the team an actionable estimate rather than a raw decimal
+- **Vote Range**: Shows the lowest and highest numeric votes cast, making spread immediately visible
+- **Consensus Badge**: Color-coded badge indicating team agreement — Unanimous (all votes match), Close (range ≤ 2), or Split (range > 2)
+- **Participation Count**: Shows how many players cast numeric votes out of the total in the room
+- **Hover Tooltips**: Each stat has a tooltip explaining what it means and how it's calculated
+
+### 🏗️ Technical Implementation
+
+- **`src/lib/voteStats.ts`**: New pure utility module with `calculateVoteStats()` function — computes recommended, min, max, and consensus from a player array
+- **`src/app/components/room/VoteStatistics.tsx`**: New display component rendered conditionally in `RoomClient` when votes are revealed
+- **`src/lib/__tests__/voteStats.test.ts`**: 11 unit tests covering edge cases including no votes, `"?"` only votes, mixed inputs, single voter, and empty player list
+- Non-numeric votes (`null`, `"?"`) are excluded from all calculations
+
+### 🐛 Bug Fixes
+- None
+
+### ⚡ Breaking Changes
+None — all changes are additive.
+
+---
+
 ## [1.3.0] - 2025-09-04
 
 ### 🆕 New Features
