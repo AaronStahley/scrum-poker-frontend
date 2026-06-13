@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/auth";
-import { useEffect, useState, useTransition, useCallback } from "react";
+import { useEffect, useState, useTransition, useCallback, useRef } from "react";
 import { addPlayerToRoom, isPlayerInRoom } from "@/lib/firebase/room";
 import { createPlayer, playerExists, updatePlayer } from "@/lib/firebase/player";
 
@@ -26,6 +26,13 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
     setPendingRole,
   } = useAuth();
 
+  // Tracks latest pendingRole without adding it to effect deps (avoids re-triggering join on role reset)
+  const pendingRoleRef = useRef(pendingRole);
+  useEffect(() => { pendingRoleRef.current = pendingRole; }, [pendingRole]);
+
+  // Prevents the auto-join from re-firing when player or other deps change after the first run
+  const hasAutoJoined = useRef(false);
+
   const joinRoomWithRole = useCallback(async (roomId: string, role: 'player' | 'spectator') => {
     if (!player?.displayName) return;
 
@@ -41,9 +48,6 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
         updatePlayer(player.uid, { currentRoom: roomId, lastJoinedAt: new Date() }),
       ]);
 
-      setPendingRoomId(null);
-      setPendingRole('player');
-
       startTransition(() => {
         router.push(`/room/${roomId}`);
       });
@@ -56,6 +60,8 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
       }
     } finally {
       setLoadingRoom(false);
+      setPendingRoomId(null);
+      setPendingRole('player');
     }
   }, [player, router, startTransition, setPendingRoomId, setPendingRole]);
 
@@ -74,19 +80,28 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
       return;
     }
 
-    // If already in the room, just update presence without asking for role
-    const alreadyInRoom = await isPlayerInRoom(roomId, player.uid);
-    if (alreadyInRoom) {
-      await updatePlayer(player.uid, { currentRoom: roomId, lastJoinedAt: new Date() });
-      startTransition(() => {
-        router.push(`/room/${roomId}`);
-      });
-      return;
+    setLoadingRoom(true);
+    try {
+      // If already in the room, just update presence without asking for role
+      const alreadyInRoom = await isPlayerInRoom(roomId, player.uid);
+      if (alreadyInRoom) {
+        await updatePlayer(player.uid, { currentRoom: roomId, lastJoinedAt: new Date() });
+        startTransition(() => {
+          router.push(`/room/${roomId}`);
+        });
+        return;
+      }
+      // New joiner — show role selector.
+      // setShowRoleModal(true) and setLoadingRoom(false) (from finally) are batched
+      // atomically by React, so the redirect guard (showRoleModal || loadingRoom) stays true.
+      setPendingJoinRoomId(roomId);
+      setShowRoleModal(true);
+    } catch (err) {
+      console.error("Error checking room membership:", err);
+      setError(err instanceof Error ? (err.message || "An error occurred while joining the room.") : "An error occurred while joining the room.");
+    } finally {
+      setLoadingRoom(false);
     }
-
-    // New joiner — ask for role first
-    setPendingJoinRoomId(roomId);
-    setShowRoleModal(true);
   }, [player, setShowCreateNewPlayerModal, setPendingRoomId, router, startTransition]);
 
   const confirmRole = useCallback(async (role: 'player' | 'spectator') => {
@@ -100,12 +115,13 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
   useEffect(() => {
     if (!loading) {
       if (playerCreated && pendingRoomId) {
-        joinRoomWithRole(pendingRoomId, pendingRole);
-      } else if (autoJoinRoomId) {
+        joinRoomWithRole(pendingRoomId, pendingRoleRef.current);
+      } else if (autoJoinRoomId && !hasAutoJoined.current) {
+        hasAutoJoined.current = true;
         joinRoom(autoJoinRoomId);
       }
     }
-  }, [autoJoinRoomId, loading, playerCreated, pendingRoomId, pendingRole, joinRoom, joinRoomWithRole]);
+  }, [autoJoinRoomId, loading, playerCreated, pendingRoomId, joinRoom, joinRoomWithRole]);
 
   return { joinRoom, loadingRoom, isPending, error, showRoleModal, confirmRole };
 };

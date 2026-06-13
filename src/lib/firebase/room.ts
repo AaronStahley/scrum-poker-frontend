@@ -153,12 +153,6 @@ export const removePlayerFromRoom = async (roomId: string, playerId: string, cur
 // Toggle a player's role between player and spectator
 export const togglePlayerRole = async (roomId: string, playerId: string, currentlySpectator: boolean) => {
     const roomRef = doc(db, 'rooms', roomId);
-    const roomSnap = await getDoc(roomRef);
-
-    if (!roomSnap.exists()) {
-        throw new Error("Room not found");
-    }
-
     if (currentlySpectator) {
         await updateDoc(roomRef, { spectators: arrayRemove(playerId) });
     } else {
