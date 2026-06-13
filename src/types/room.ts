@@ -7,5 +7,6 @@ export interface Room {
     name: string;
     status: string;
     players: string[];
+    spectators?: string[];
     playerRemovalPermissions?: PlayerRemovalPermission;
 }

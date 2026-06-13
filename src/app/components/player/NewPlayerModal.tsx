@@ -9,12 +9,12 @@ import { useRouter } from "next/navigation";
 const NewPlayerModal = () => {
   const [playerName, setPlayerName] = useState("");
   const [showHelp, setShowHelp] = useState(false);
-  const { showCreateNewPlayerModal, setShowCreateNewPlayerModal, createNewAnonymousPlayer } = useAuth();
+  const { showCreateNewPlayerModal, setShowCreateNewPlayerModal, createNewAnonymousPlayer, setPendingRole } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (role: 'player' | 'spectator') => {
     if (playerName.trim()) {
+      setPendingRole(role);
       createNewAnonymousPlayer(playerName);
       setShowCreateNewPlayerModal(false);
       setPlayerName("");
@@ -55,12 +55,17 @@ const NewPlayerModal = () => {
             </p>
           </div>
         )}
-        <div className="modal-action">
-          <button className="btn btn-primary" onClick={handleSubmit}>
-            Join
-          </button>
+        <div className="modal-action flex-col gap-2">
+          <div className="flex gap-2 justify-center w-full">
+            <button className="btn btn-primary flex-1" onClick={() => handleSubmit('player')}>
+              Join as Player
+            </button>
+            <button className="btn btn-outline flex-1" onClick={() => handleSubmit('spectator')}>
+              Join as Spectator
+            </button>
+          </div>
           <button
-            className="btn btn-ghost"
+            className="btn btn-ghost w-full"
             onClick={() => {
               setShowCreateNewPlayerModal(false);
               router.push('/');

@@ -17,16 +17,17 @@ function nearestStoryPoint(value: number): number {
   );
 }
 
-export function calculateVoteStats(players: Player[]): VoteStats {
-  const numericVotes = players
+export function calculateVoteStats(players: Player[], spectatorIds: string[] = []): VoteStats {
+  const voters = players.filter(p => !spectatorIds.includes(p.id));
+  const numericVotes = voters
     .map(p => p.selection)
     .filter((s): s is number => typeof s === 'number');
 
-  const totalPlayerCount = players.length;
+  const totalPlayerCount = voters.length;
   const numericVoteCount = numericVotes.length;
 
   if (numericVoteCount === 0) {
-    return { recommended: null, min: null, max: null, consensus: 'none', numericVoteCount, totalPlayerCount };
+    return { recommended: null, min: null, max: null, consensus: 'none', numericVoteCount, totalPlayerCount: voters.length };
   }
 
   const min = Math.min(...numericVotes);

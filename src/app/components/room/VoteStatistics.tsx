@@ -5,6 +5,7 @@ import { calculateVoteStats } from '@/lib/voteStats';
 
 interface VoteStatisticsProps {
   players: Player[];
+  spectatorIds?: string[];
 }
 
 const consensusConfig = {
@@ -14,8 +15,8 @@ const consensusConfig = {
   none: { label: 'No votes', className: 'badge-neutral' },
 };
 
-const VoteStatistics: React.FC<VoteStatisticsProps> = ({ players }) => {
-  const { recommended, min, max, consensus, numericVoteCount, totalPlayerCount } = calculateVoteStats(players);
+const VoteStatistics: React.FC<VoteStatisticsProps> = ({ players, spectatorIds = [] }) => {
+  const { recommended, min, max, consensus, numericVoteCount, totalPlayerCount } = calculateVoteStats(players, spectatorIds);
 
   const { label, className } = consensusConfig[consensus];
 

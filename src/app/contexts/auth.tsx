@@ -28,6 +28,8 @@ interface AuthContextType {
   playerCreated: boolean;
   pendingRoomId: string | null;
   setPendingRoomId: (roomId: string | null) => void;
+  pendingRole: 'player' | 'spectator';
+  setPendingRole: (role: 'player' | 'spectator') => void;
   sendPasswordResetEmail: (email: string) => Promise<void>;
   updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
   updateDisplayName: (newDisplayName: string) => Promise<void>;
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showCreateNewPlayerModal, setShowCreateNewPlayerModal] = useState(false);
   const [pendingRoomId, setPendingRoomId] = useState<string | null>(null);
+  const [pendingRole, setPendingRole] = useState<'player' | 'spectator'>('player');
   const [playerCreated, setPlayerCreated] = useState(false);
 
   useEffect(() => {
@@ -159,8 +162,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       createNewAnonymousPlayer, 
       setPlayerCreated, 
       playerCreated, 
-      pendingRoomId, 
+      pendingRoomId,
       setPendingRoomId,
+      pendingRole,
+      setPendingRole,
       sendPasswordResetEmail: sendPasswordResetEmailToUser,
       updateUserPassword,
       updateDisplayName

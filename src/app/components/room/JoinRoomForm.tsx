@@ -6,12 +6,13 @@ import { XCircleIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 import { getPreviousRooms } from "@/lib/firebase/room";
 import { useAuth } from "@/app/contexts/auth";
 import { Room } from "@/types/room";
-import  LoadOverlay from "@/app/components/loading/LoadingOverlay";
+import LoadOverlay from "@/app/components/loading/LoadingOverlay";
 import SkeletonDropdownArrow from "@/app/components/loading/SkeletonDropdownArrow";
+import JoinRoleModal from "@/app/components/room/JoinRoleModal";
 
 const JoinRoom = () => {
   const [roomId, setRoomId] = useState("");
-  const { joinRoom, loadingRoom, isPending, error: joinRoomError } = useJoinRoom();
+  const { joinRoom, loadingRoom, isPending, error: joinRoomError, showRoleModal, confirmRole } = useJoinRoom();
   const [showDropdown, setShowDropdown] = useState(false);
   const [previousRooms, setPreviousRooms] = useState<Room[]>([]);
   const [loadingPreviousRooms, setLoadingPreviousRooms] = useState(false);
@@ -61,6 +62,7 @@ const JoinRoom = () => {
 
   return (
     <>
+      {showRoleModal && <JoinRoleModal onSelectRole={confirmRole} />}
       {(loadingRoom || isPending) && <LoadOverlay />}
       <form onSubmit={handleJoinRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
         <div className="relative min-w-64" ref={dropdownRef}>

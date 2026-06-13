@@ -74,6 +74,23 @@ describe('calculateVoteStats', () => {
     expect(stats.recommended).toBe(5);
   });
 
+  it('excludes spectators from all calculations', () => {
+    const players = [makePlayer('1', 8), makePlayer('2', 5), makePlayer('spectator1', 3)];
+    const stats = calculateVoteStats(players, ['spectator1']);
+    expect(stats.totalPlayerCount).toBe(2);
+    expect(stats.numericVoteCount).toBe(2);
+    // average of 8 and 5 is 6.5 → nearest story point is 5
+    expect(stats.recommended).toBe(5);
+  });
+
+  it('returns none consensus when all participants are spectators', () => {
+    const players = [makePlayer('1', 5)];
+    const stats = calculateVoteStats(players, ['1']);
+    expect(stats.recommended).toBeNull();
+    expect(stats.consensus).toBe('none');
+    expect(stats.totalPlayerCount).toBe(0);
+  });
+
   it('handles a single voter', () => {
     const players = [makePlayer('1', 8)];
     const stats = calculateVoteStats(players);

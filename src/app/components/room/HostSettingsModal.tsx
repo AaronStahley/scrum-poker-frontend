@@ -15,14 +15,14 @@ interface HostSettingsModalProps {
   onUpdatePermissions: (permissions: PlayerRemovalPermission) => Promise<void>;
 }
 
-const HostSettingsModal: React.FC<HostSettingsModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  currentRoomName, 
-  onUpdateRoomName, 
+const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
+  isOpen,
+  onClose,
+  currentRoomName,
+  onUpdateRoomName,
   onDeleteRoom,
   playerRemovalPermissions,
-  onUpdatePermissions
+  onUpdatePermissions,
 }) => {
   const [roomName, setRoomName] = useState(currentRoomName);
   const [permissions, setPermissions] = useState<PlayerRemovalPermission>(playerRemovalPermissions);

@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.5.0] - 2026-06-13
+
+### 🆕 New Features
+
+#### Spectator Mode
+- **Join as Spectator**: When joining a room (via direct URL or the home page join form), users are now prompted to choose whether they want to join as a **Player** (votes on estimates) or a **Spectator** (observes without voting)
+- **Spectator Card Hiding**: Spectators do not see the playing card selector — the voting UI is hidden entirely for them
+- **Spectators Excluded from Stats**: Vote statistics (Recommended, Range, Consensus) only count votes from active players; spectators are excluded
+- **Role Toggle**: Players can switch themselves between Player and Spectator at any time via the eye icon in the Actions column. The host can also toggle any other player's role. The host can toggle their own role too
+- **Split Player Table**: The player table now has two distinct sections — **Players** at the top and a collapsible **Spectators** section at the bottom (collapsed by default). Spectator rows are visually muted to indicate they are secondary
+- **Spectator Count Badge**: The collapsible Spectators header shows a count badge so the number of spectators is visible without expanding
+
+### 🏗️ Technical Implementation
+
+- **`src/types/room.ts`**: Added `spectators?: string[]` field to `Room` interface
+- **`src/lib/firebase/room.ts`**: Updated `addPlayerToRoom` to accept a `role` parameter and write to `spectators` array; updated `removePlayerFromRoom` to clean up the spectators array; added `togglePlayerRole` function
+- **`src/app/contexts/auth.tsx`**: Added `pendingRole` state and `setPendingRole` to auth context for carrying role selection through the new player creation flow
+- **`src/app/hooks/useJoinRoom.ts`**: Major rewrite — added `showRoleModal` state, `confirmRole` handler, and logic to detect whether a user is new to a room before prompting for role selection
+- **`src/app/components/room/JoinRoleModal.tsx`**: New modal component for authenticated users to choose Player or Spectator when joining a room
+- **`src/app/components/player/NewPlayerModal.tsx`**: Replaced single Join button with "Join as Player" / "Join as Spectator" buttons
+- **`src/app/components/room/JoinRoomForm.tsx`**: Added `JoinRoleModal` render for the home page join flow
+- **`src/app/components/room/RoomClient.tsx`**: Spectator-aware rendering — hides card selector for spectators, passes `spectatorIds` and `onToggleRole` to `PlayerTable`, renders `JoinRoleModal` for new joiners
+- **`src/app/components/player/PlayerTable.tsx`**: Split into Players/Spectators sections with collapsible Spectators tbody; eye/eye-slash icons in Actions column for role toggling; border divider treatment with uppercase section label and count badge
+- **`src/lib/voteStats.ts`** / **`src/app/components/room/VoteStatistics.tsx`**: Updated to accept and apply `spectatorIds` so spectators are excluded from all vote calculations
+- **`src/lib/__tests__/voteStats.test.ts`**: Added spectator exclusion tests (49 total tests)
+
+### 🐛 Bug Fixes
+- **Card selector flash on refresh**: Spectators no longer briefly see the voting card selector on page load — card selector now waits for room data before rendering
+
+### ⚡ Breaking Changes
+None — all changes are additive. Existing rooms without a `spectators` field treat all players as voters.
+
+---
+
 ## [1.4.0] - 2026-06-12
 
 ### 🆕 New Features

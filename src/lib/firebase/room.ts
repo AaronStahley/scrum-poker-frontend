@@ -1,15 +1,16 @@
 import {
-    doc, 
+    doc,
     addDoc,
-    getDoc, 
-    updateDoc, 
+    getDoc,
+    updateDoc,
     deleteDoc,
-    collection, 
-    arrayUnion, 
-    query, 
-    collectionGroup, 
-    where, 
-    getDocs 
+    collection,
+    arrayUnion,
+    arrayRemove,
+    query,
+    collectionGroup,
+    where,
+    getDocs
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import { Room, PlayerRemovalPermission } from "@/types/room";
@@ -72,7 +73,7 @@ export const isPlayerInRoom = async (roomId: string, playerId: string) => {
 };
 
 // Add a player to a room
-export const addPlayerToRoom = async (roomId: string, playerId: string) => {
+export const addPlayerToRoom = async (roomId: string, playerId: string, role: 'player' | 'spectator' = 'player') => {
     const roomRef = doc(db, 'rooms', roomId);
     const roomSnap = await getDoc(roomRef);
 
@@ -91,10 +92,18 @@ export const addPlayerToRoom = async (roomId: string, playerId: string) => {
 
     console.log("Adding player to room:", roomId, playerId);
 
-    await updateDoc(roomRef, {
-        createdBy: roomData.createdBy === "anonymous" ? playerId : roomData.createdBy,
-        players: arrayUnion(playerId),
-    });
+    if (role === 'spectator') {
+        await updateDoc(roomRef, {
+            createdBy: roomData.createdBy === "anonymous" ? playerId : roomData.createdBy,
+            players: arrayUnion(playerId),
+            spectators: arrayUnion(playerId),
+        });
+    } else {
+        await updateDoc(roomRef, {
+            createdBy: roomData.createdBy === "anonymous" ? playerId : roomData.createdBy,
+            players: arrayUnion(playerId),
+        });
+    }
 };
 
 // Remove a player from a room
@@ -137,7 +146,24 @@ export const removePlayerFromRoom = async (roomId: string, playerId: string, cur
 
     await updateDoc(roomRef, {
         players: playersInRoom.filter((p: string) => p !== playerId),
+        spectators: arrayRemove(playerId),
     });
+};
+
+// Toggle a player's role between player and spectator
+export const togglePlayerRole = async (roomId: string, playerId: string, currentlySpectator: boolean) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if (!roomSnap.exists()) {
+        throw new Error("Room not found");
+    }
+
+    if (currentlySpectator) {
+        await updateDoc(roomRef, { spectators: arrayRemove(playerId) });
+    } else {
+        await updateDoc(roomRef, { spectators: arrayUnion(playerId) });
+    }
 };
 
 // Get previous rooms a player has participated in
