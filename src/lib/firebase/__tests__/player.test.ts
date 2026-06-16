@@ -55,8 +55,8 @@ describe('Player Firebase Operations', () => {
       // Execute
       await updatePlayers(roomId, playerData)
 
-      // Verify all updates were called
-      expect(mockUpdateDoc).toHaveBeenCalledTimes(3)
+      // Verify all updates were called (3 player updates + 1 room lastActivity update)
+      expect(mockUpdateDoc).toHaveBeenCalledTimes(4)
       expect(mockUpdateDoc).toHaveBeenCalledWith('ref1', playerData)
       expect(mockUpdateDoc).toHaveBeenCalledWith('ref2', playerData)
       expect(mockUpdateDoc).toHaveBeenCalledWith('ref3', playerData)
@@ -81,8 +81,8 @@ describe('Player Firebase Operations', () => {
 
       await Promise.all(promises)
 
-      // Verify all calls completed
-      expect(mockUpdateDoc).toHaveBeenCalledTimes(3)
+      // Verify all calls completed (1 player update + 1 room lastActivity update per updatePlayers call × 3 calls)
+      expect(mockUpdateDoc).toHaveBeenCalledTimes(6)
     })
   })
 

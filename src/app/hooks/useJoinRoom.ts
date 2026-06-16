@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/auth";
 import { useEffect, useState, useTransition, useCallback, useRef } from "react";
-import { addPlayerToRoom, isPlayerInRoom } from "@/lib/firebase/room";
+import { addPlayerToRoom, isPlayerInRoom, touchRoom } from "@/lib/firebase/room";
 import { createPlayer, playerExists, updatePlayer } from "@/lib/firebase/player";
 
 type UseJoinRoomOptions = {
@@ -85,7 +85,10 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
       // If already in the room, just update presence without asking for role
       const alreadyInRoom = await isPlayerInRoom(roomId, player.uid);
       if (alreadyInRoom) {
-        await updatePlayer(player.uid, { currentRoom: roomId, lastJoinedAt: new Date() });
+        await Promise.all([
+          updatePlayer(player.uid, { currentRoom: roomId, lastJoinedAt: new Date() }),
+          touchRoom(roomId),
+        ]);
         startTransition(() => {
           router.push(`/room/${roomId}`);
         });

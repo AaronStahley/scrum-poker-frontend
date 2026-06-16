@@ -9,4 +9,5 @@ export interface Room {
     players: string[];
     spectators?: string[];
     playerRemovalPermissions?: PlayerRemovalPermission;
+    lastActivity?: Date;
 }

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.1] - 2026-06-17
+
+### 🏗️ Technical Implementation
+
+#### FE-CLEANUP-001: Room `lastActivity` tracking
+
+Every room document in Firestore now has a `lastActivity` timestamp. It refreshes whenever something meaningful happens — a room is created, anyone navigates to it, a player joins or leaves, votes are revealed or reset, or room settings are changed. This gives a future cleanup microservice a reliable signal to identify and purge stale rooms.
+
+One subtle fix was needed: returning players previously took a shortcut path that skipped all room writes entirely, so their visits weren't being recorded. That gap is now closed.
+
+---
+
 ## [1.5.0] - 2026-06-13
 
 ### 🆕 New Features
