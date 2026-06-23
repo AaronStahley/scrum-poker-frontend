@@ -7,6 +7,8 @@ import NewPlayerModal from "./components/player/NewPlayerModal";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { ThemeProvider } from "./contexts/theme";
 import { DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME } from "./constants/themes";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -110,6 +112,8 @@ export default function RootLayout({
               </ErrorBoundary>
             </ThemeProvider>
           </AuthProviderWrapper>
+          <Analytics />
+          <SpeedInsights />
         </body>
       </html>
   );

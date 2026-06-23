@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.2] - 2026-06-23
+
+### 📊 Analytics
+
+- **Firebase Analytics**: Wired up the existing Firebase Analytics measurement ID (`NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`) — added `measurementId` to the Firebase config and initialized the Analytics SDK browser-side. Firebase now tracks sessions, page views, and events in the Firebase Analytics dashboard
+- **Vercel Analytics**: Added `<Analytics />` component from `@vercel/analytics` to the root layout, enabling page view and route-change tracking in the Vercel Analytics dashboard
+- **Vercel Speed Insights**: Added `<SpeedInsights />` component from `@vercel/speed-insights` to the root layout, enabling Core Web Vitals (LCP, CLS, FID) reporting in the Vercel dashboard
+
+### ⚡ Breaking Changes
+None — all changes are additive and transparent to users.
+
+---
+
 ## [1.5.1] - 2026-06-17
 
 ### 🏗️ Technical Implementation
