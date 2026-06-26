@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getAnalytics, type Analytics } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -17,7 +17,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const analytics: Analytics | null = typeof window !== "undefined" ? getAnalytics(app) : null;
+
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
+  try {
+    connectFirestoreEmulator(db, '127.0.0.1', 8080);
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  } catch {
+    // Already connected — safe to ignore during HMR
+  }
+}
+
+const analytics: Analytics | null =
+  typeof window !== "undefined" && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR !== 'true'
+    ? getAnalytics(app)
+    : null;
 
 export { db, auth, analytics };
 

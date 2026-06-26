@@ -9,7 +9,11 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "emulators": "firebase emulators:start --only auth,firestore"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -24,6 +28,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^16.0.0",
@@ -37,6 +42,7 @@
     "daisyui": "^5.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
+    "firebase-tools": "^15.22.3",
     "jsdom": "^25.0.0",
     "tailwindcss": "^4",
     "typescript": "^5",
