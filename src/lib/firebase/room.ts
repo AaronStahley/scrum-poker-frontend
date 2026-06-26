@@ -48,7 +48,7 @@ export const getRoom = async (roomId: string) => {
     const roomSnap = await getDoc(roomRef);
 
     if (!roomSnap.exists()) {
-        throw new Error("Room not found");
+        return null;
     }
 
     return roomSnap.data();

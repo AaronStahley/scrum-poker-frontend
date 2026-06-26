@@ -1,5 +1,27 @@
 import { type Page, expect } from '@playwright/test';
 
+export async function loginWithEmail(page: Page, email: string, password: string): Promise<void> {
+  await page.goto('/login');
+  await page.getByPlaceholder('Email').fill(email);
+  await page.getByPlaceholder('Password').fill(password);
+  await page.getByRole('button', { name: 'Log In' }).click();
+  await page.waitForURL('/', { timeout: 15_000 });
+}
+
+export async function openHostSettings(page: Page): Promise<void> {
+  await page.getByTitle('Room Settings').click();
+  await expect(page.getByRole('heading', { name: 'Room Settings' })).toBeVisible();
+}
+
+export async function handleJoinRoleModal(
+  page: Page,
+  role: 'player' | 'spectator' = 'player'
+): Promise<void> {
+  await expect(page.getByRole('heading', { name: 'How would you like to join?' })).toBeVisible();
+  const buttonLabel = role === 'spectator' ? 'Join as Spectator' : 'Join as Player';
+  await page.getByRole('button', { name: buttonLabel }).click();
+}
+
 export async function handleNewPlayerModal(
   page: Page,
   name: string,
