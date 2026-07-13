@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.5.3] - 2026-07-12
+
+### 🐛 Bug Fixes
+
+- **Player state corruption on failed room join** (`useJoinRoom.ts`): `addPlayerToRoom` and `updatePlayer` were fired concurrently via `Promise.all`. If the room was deleted between the membership check and the join write, `updatePlayer` could commit `currentRoom: roomId` to the player's Firestore document before `addPlayerToRoom` failed — leaving the player pointing to a room they were never added to. The two writes are now sequenced: `updatePlayer` only runs if `addPlayerToRoom` succeeds.
+
+- **Auto-join errors invisible on direct room navigation** (`RoomClient.tsx`): When a user navigated directly to `/room/[id]`, errors from the auto-join flow (network failures, Firebase errors) were silently discarded — `RoomClient` was not consuming the `error` field returned by `useJoinRoom`. Errors are now surfaced through the existing `ErrorToast`.
+
+- **Room-deleted redirect tied to hardcoded error string** (`useCurrentRoom.ts` / `RoomClient.tsx`): The redirect that fires when a room is deleted was gated on a raw string comparison (`roomError.message === 'Room does not exist'`). The error message is now a shared exported constant (`ROOM_NOT_FOUND_ERROR`) defined in `useCurrentRoom.ts` and referenced from `RoomClient.tsx`, so any future change to the message stays in sync automatically.
+
+- **"Removed from room" flash on direct room link** (`useJoinRoom.ts`): When a user navigated to a room URL directly (e.g. a shared link) and the room already had other players, the app briefly showed a "You have been removed from the room" alert before correctly completing the join. This was a race condition: Firestore returned the existing player list before the auto-join effect had set its loading guard, so the removal detection fired on the initial render. Fixed by initialising `loadingRoom` to `true` when an `autoJoinRoomId` is provided, ensuring the guard is active from the very first render.
+
+- **Crash when player document has no `name` field during join** (`usePlayersInRoom.ts`): The player list sort (`localeCompare`) threw `TypeError: Cannot read properties of undefined` if a player document arrived in a Firestore snapshot before its `name` field was written — a common occurrence during the brief gap between `addPlayerToRoom` and `updatePlayer`. Sort now falls back to `''` for missing names.
+
+### ✨ Improvements
+
+- **Smoother loading transition when joining a room** (`useJoinRoom.ts`, `JoinRoomForm.tsx`): The full-screen loading overlay on the home page join form now displays for a minimum of 400ms, preventing it from flickering in and out too quickly to register as meaningful feedback. The minimum duration is shared with the player table skeleton (`src/app/constants/loading.ts`) so both loading states feel consistent.
+
+### ⚡ Breaking Changes
+None.
+
+---
+
 ## [1.5.2] - 2026-06-23
 
 ### 📊 Analytics

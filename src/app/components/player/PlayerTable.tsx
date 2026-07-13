@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { MIN_LOADING_MS } from '@/app/constants/loading';
 import { Player } from '../../../types/player';
 import { PlayerRemovalPermission } from '../../../types/room';
 import { TrashIcon, ArrowLongUpIcon, ArrowLongDownIcon, ArrowsUpDownIcon, StarIcon, EyeIcon, EyeSlashIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
@@ -59,7 +60,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
 
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    const timeout = setTimeout(() => setIsLoading(false), 1000);
+    const timeout = setTimeout(() => setIsLoading(false), MIN_LOADING_MS);
     return () => clearTimeout(timeout);
   }, []);
 
