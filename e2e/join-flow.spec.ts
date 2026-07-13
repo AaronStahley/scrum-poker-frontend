@@ -28,6 +28,35 @@ test('authenticated user joining new room sees JoinRoleModal', async ({ browser 
   await context2.close();
 });
 
+test('joining via direct link does not flash removed-from-room message', async ({ browser }) => {
+  // Create a room with one player so players.length > 0 in Firestore (required to trigger the bug)
+  const context1 = await browser.newContext();
+  const page1 = await context1.newPage();
+  await createRoomFromHomePage(page1, 'Direct Link Room', 'Alice');
+  const roomId = page1.url().split('/room/')[1];
+
+  // Second user navigates directly to the room URL (simulates sharing a link)
+  const context2 = await browser.newContext();
+  const page2 = await context2.newPage();
+  await createEmailUser('directjoin@test.com', 'password123', 'DirectJoiner');
+  await loginWithEmail(page2, 'directjoin@test.com', 'password123');
+
+  await page2.goto(`/room/${roomId}`);
+
+  // The "removed from room" message must never appear — assert immediately after load
+  await expect(page2.getByText('You have been removed from the room')).not.toBeVisible();
+
+  // Normal join flow should proceed: role modal → room UI
+  await handleJoinRoleModal(page2, 'player');
+  await expect(page2.getByRole('heading', { name: 'Select Your Story Point' })).toBeVisible();
+
+  // Confirm the "removed" message never surfaced after the join either
+  await expect(page2.getByText('You have been removed from the room')).not.toBeVisible();
+
+  await context1.close();
+  await context2.close();
+});
+
 test('NewPlayerModal Exit button navigates to home', async ({ page }) => {
   await page.goto('/');
   // Wait for auth to settle (Login link visible = auth loaded, no player)

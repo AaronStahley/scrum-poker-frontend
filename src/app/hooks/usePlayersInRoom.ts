@@ -86,7 +86,7 @@ export function usePlayersInRoom(roomId: string) {
             const allPlayers = Array.from(playersMap.values());
             
             // Sort players by name for consistent ordering
-            allPlayers.sort((a, b) => a.name.localeCompare(b.name));
+            allPlayers.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
             
             setPlayers(allPlayers);
             console.log("Updated Players:", allPlayers);

@@ -10,6 +10,14 @@
 
 - **Room-deleted redirect tied to hardcoded error string** (`useCurrentRoom.ts` / `RoomClient.tsx`): The redirect that fires when a room is deleted was gated on a raw string comparison (`roomError.message === 'Room does not exist'`). The error message is now a shared exported constant (`ROOM_NOT_FOUND_ERROR`) defined in `useCurrentRoom.ts` and referenced from `RoomClient.tsx`, so any future change to the message stays in sync automatically.
 
+- **"Removed from room" flash on direct room link** (`useJoinRoom.ts`): When a user navigated to a room URL directly (e.g. a shared link) and the room already had other players, the app briefly showed a "You have been removed from the room" alert before correctly completing the join. This was a race condition: Firestore returned the existing player list before the auto-join effect had set its loading guard, so the removal detection fired on the initial render. Fixed by initialising `loadingRoom` to `true` when an `autoJoinRoomId` is provided, ensuring the guard is active from the very first render.
+
+- **Crash when player document has no `name` field during join** (`usePlayersInRoom.ts`): The player list sort (`localeCompare`) threw `TypeError: Cannot read properties of undefined` if a player document arrived in a Firestore snapshot before its `name` field was written — a common occurrence during the brief gap between `addPlayerToRoom` and `updatePlayer`. Sort now falls back to `''` for missing names.
+
+### ✨ Improvements
+
+- **Smoother loading transition when joining a room** (`useJoinRoom.ts`, `JoinRoomForm.tsx`): The full-screen loading overlay on the home page join form now displays for a minimum of 400ms, preventing it from flickering in and out too quickly to register as meaningful feedback. The minimum duration is shared with the player table skeleton (`src/app/constants/loading.ts`) so both loading states feel consistent.
+
 ### ⚡ Breaking Changes
 None.
 
