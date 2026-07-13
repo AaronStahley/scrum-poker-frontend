@@ -87,7 +87,7 @@ test('"?" vote excluded from numeric stats but shown in table after reveal', asy
   await page1.getByRole('button', { name: 'Reveal Votes' }).click();
 
   // Only Alice's numeric vote counts; Bob's "?" is excluded
-  await expect(page1.getByText('1 of 2 voted')).toBeVisible({ timeout: 8_000 });
+  await expect(page1.getByText('1 of 2 numeric')).toBeVisible({ timeout: 8_000 });
   // Only one numeric voter, so unanimous
   await expect(page1.getByText('Unanimous')).toBeVisible();
   // Bob's "?" appears in his row after reveal

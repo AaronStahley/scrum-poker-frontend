@@ -43,10 +43,10 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
         await createPlayer(player.uid, player.displayName);
       }
 
-      await Promise.all([
-        addPlayerToRoom(roomId, player.uid, role),
-        updatePlayer(player.uid, { currentRoom: roomId, lastJoinedAt: new Date() }),
-      ]);
+      // Sequence these: if addPlayerToRoom fails (e.g. room deleted), updatePlayer
+      // must not run — otherwise player.currentRoom points to a room they're not in.
+      await addPlayerToRoom(roomId, player.uid, role);
+      await updatePlayer(player.uid, { currentRoom: roomId, lastJoinedAt: new Date() });
 
       startTransition(() => {
         router.push(`/room/${roomId}`);
@@ -65,19 +65,19 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
     }
   }, [player, router, startTransition, setPendingRoomId, setPendingRole]);
 
-  const joinRoom = useCallback(async (roomId: string) => {
+  const joinRoom = useCallback(async (roomId: string): Promise<boolean> => {
     console.log("Joining room:", roomId);
 
     if (!player) {
       console.log("Player is not authenticated.");
       setShowCreateNewPlayerModal(true);
       setPendingRoomId(roomId);
-      return;
+      return true;
     }
 
     if (!player.displayName) {
       console.log("Player does not have a display name.");
-      return;
+      return true;
     }
 
     setLoadingRoom(true);
@@ -92,16 +92,18 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
         startTransition(() => {
           router.push(`/room/${roomId}`);
         });
-        return;
+        return true;
       }
       // New joiner — show role selector.
       // setShowRoleModal(true) and setLoadingRoom(false) (from finally) are batched
       // atomically by React, so the redirect guard (showRoleModal || loadingRoom) stays true.
       setPendingJoinRoomId(roomId);
       setShowRoleModal(true);
+      return true;
     } catch (err) {
       console.error("Error checking room membership:", err);
       setError(err instanceof Error ? (err.message || "An error occurred while joining the room.") : "An error occurred while joining the room.");
+      return false;
     } finally {
       setLoadingRoom(false);
     }
@@ -121,7 +123,9 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
         joinRoomWithRole(pendingRoomId, pendingRoleRef.current);
       } else if (autoJoinRoomId && !hasAutoJoined.current) {
         hasAutoJoined.current = true;
-        joinRoom(autoJoinRoomId);
+        joinRoom(autoJoinRoomId).then(success => {
+          if (!success) hasAutoJoined.current = false;
+        });
       }
     }
   }, [autoJoinRoomId, loading, playerCreated, pendingRoomId, joinRoom, joinRoomWithRole]);

@@ -16,7 +16,7 @@ const consensusConfig = {
 };
 
 const VoteStatistics: React.FC<VoteStatisticsProps> = ({ players, spectatorIds = [] }) => {
-  const { recommended, min, max, consensus, numericVoteCount, totalPlayerCount } = calculateVoteStats(players, spectatorIds);
+  const { recommended, min, max, consensus, numericVoteCount, totalPlayerCount, hasNonNumericVotes } = calculateVoteStats(players, spectatorIds);
 
   const { label, className } = consensusConfig[consensus];
 
@@ -54,7 +54,7 @@ const VoteStatistics: React.FC<VoteStatisticsProps> = ({ players, spectatorIds =
             <span className={`badge ${className} badge-lg font-semibold`}>{label}</span>
           </div>
           <div className="text-xs text-base-content/60 uppercase tracking-wide">
-            {numericVoteCount} of {totalPlayerCount} voted
+            {numericVoteCount} of {totalPlayerCount} {hasNonNumericVotes ? 'numeric' : 'voted'}
           </div>
         </div>
       </div>

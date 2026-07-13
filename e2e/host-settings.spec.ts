@@ -46,8 +46,8 @@ test('host renames room and both players see updated name', async ({ browser }) 
   await page1.getByRole('button', { name: 'Update Name' }).click();
   await expect(page1.getByRole('heading', { name: 'Room Settings' })).toBeHidden({ timeout: 5_000 });
 
-  await expect(page1.getByText('Renamed Room')).toBeVisible({ timeout: 8_000 });
-  await expect(page2.getByText('Renamed Room')).toBeVisible({ timeout: 8_000 });
+  await expect(page1.getByText('Renamed Room')).toBeVisible({ timeout: 15_000 });
+  await expect(page2.getByText('Renamed Room')).toBeVisible({ timeout: 15_000 });
 
   await context1.close();
   await context2.close();

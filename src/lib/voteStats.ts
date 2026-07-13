@@ -9,6 +9,7 @@ export interface VoteStats {
   consensus: 'unanimous' | 'close' | 'split' | 'none';
   numericVoteCount: number;
   totalPlayerCount: number;
+  hasNonNumericVotes: boolean;
 }
 
 function nearestStoryPoint(value: number): number {
@@ -25,9 +26,10 @@ export function calculateVoteStats(players: Player[], spectatorIds: string[] = [
 
   const totalPlayerCount = voters.length;
   const numericVoteCount = numericVotes.length;
+  const hasNonNumericVotes = voters.some(p => p.selection !== null && typeof p.selection !== 'number');
 
   if (numericVoteCount === 0) {
-    return { recommended: null, min: null, max: null, consensus: 'none', numericVoteCount, totalPlayerCount: voters.length };
+    return { recommended: null, min: null, max: null, consensus: 'none', numericVoteCount, totalPlayerCount: voters.length, hasNonNumericVotes };
   }
 
   const min = Math.min(...numericVotes);
@@ -44,5 +46,5 @@ export function calculateVoteStats(players: Player[], spectatorIds: string[] = [
     consensus = 'split';
   }
 
-  return { recommended, min, max, consensus, numericVoteCount, totalPlayerCount };
+  return { recommended, min, max, consensus, numericVoteCount, totalPlayerCount, hasNonNumericVotes };
 }

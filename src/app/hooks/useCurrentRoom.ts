@@ -3,6 +3,8 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { Room } from '@/types/room';
 import { db } from '@/lib/firebase/firebase';
 
+export const ROOM_NOT_FOUND_ERROR = 'Room does not exist';
+
 export function useCurrentRoom(roomId: string) {
   const [room, setRoom] = React.useState<Room>({} as Room);
   const [loading, setLoading] = React.useState(true);
@@ -18,7 +20,7 @@ export function useCurrentRoom(roomId: string) {
         setRoom(snapshot.data() as Room);
         setLoading(false);
     } else {
-        setError(new Error('Room does not exist'));
+        setError(new Error(ROOM_NOT_FOUND_ERROR));
         setLoading(false);
     }
     }, (error) => {

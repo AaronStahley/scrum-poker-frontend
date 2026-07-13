@@ -21,6 +21,7 @@ describe('calculateVoteStats', () => {
     expect(stats.consensus).toBe('none');
     expect(stats.numericVoteCount).toBe(0);
     expect(stats.totalPlayerCount).toBe(2);
+    expect(stats.hasNonNumericVotes).toBe(false);
   });
 
   it('returns nulls and none consensus when only "?" votes exist', () => {
@@ -28,6 +29,7 @@ describe('calculateVoteStats', () => {
     const stats = calculateVoteStats(players);
     expect(stats.recommended).toBeNull();
     expect(stats.consensus).toBe('none');
+    expect(stats.hasNonNumericVotes).toBe(true);
   });
 
   it('snaps average to nearest story point', () => {
@@ -72,6 +74,7 @@ describe('calculateVoteStats', () => {
     expect(stats.numericVoteCount).toBe(3);
     expect(stats.totalPlayerCount).toBe(5);
     expect(stats.recommended).toBe(5);
+    expect(stats.hasNonNumericVotes).toBe(true);
   });
 
   it('excludes spectators from all calculations', () => {

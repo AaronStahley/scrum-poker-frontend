@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.3] - 2026-07-12
+
+### 🐛 Bug Fixes
+
+- **Player state corruption on failed room join** (`useJoinRoom.ts`): `addPlayerToRoom` and `updatePlayer` were fired concurrently via `Promise.all`. If the room was deleted between the membership check and the join write, `updatePlayer` could commit `currentRoom: roomId` to the player's Firestore document before `addPlayerToRoom` failed — leaving the player pointing to a room they were never added to. The two writes are now sequenced: `updatePlayer` only runs if `addPlayerToRoom` succeeds.
+
+- **Auto-join errors invisible on direct room navigation** (`RoomClient.tsx`): When a user navigated directly to `/room/[id]`, errors from the auto-join flow (network failures, Firebase errors) were silently discarded — `RoomClient` was not consuming the `error` field returned by `useJoinRoom`. Errors are now surfaced through the existing `ErrorToast`.
+
+- **Room-deleted redirect tied to hardcoded error string** (`useCurrentRoom.ts` / `RoomClient.tsx`): The redirect that fires when a room is deleted was gated on a raw string comparison (`roomError.message === 'Room does not exist'`). The error message is now a shared exported constant (`ROOM_NOT_FOUND_ERROR`) defined in `useCurrentRoom.ts` and referenced from `RoomClient.tsx`, so any future change to the message stays in sync automatically.
+
+### ⚡ Breaking Changes
+None.
+
+---
+
 ## [1.5.2] - 2026-06-23
 
 ### 📊 Analytics

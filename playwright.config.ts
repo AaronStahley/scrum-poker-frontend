@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { BASE_URL } from './e2e/config';
 
 export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
@@ -10,7 +11,7 @@ export default defineConfig({
   timeout: 60_000,
   reporter: [['html', { open: 'never' }], ['list']],
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL: BASE_URL,
     trace: 'on-first-retry',
     actionTimeout: 10_000,
     navigationTimeout: 30_000,
@@ -25,7 +26,7 @@ export default defineConfig({
   // run `npm run emulators` separately first.
   webServer: {
     command: 'npx next dev -p 3001',
-    url: 'http://localhost:3001',
+    url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {

@@ -9,7 +9,7 @@ import useJoinRoom from "@/app/hooks/useJoinRoom";
 import { updatePlayers, updatePlayer } from "@/lib/firebase/player";
 import { updateRoom, removePlayerFromRoom, deleteRoom, updateRoomName, updateRoomPermissions, togglePlayerRole } from "@/lib/firebase/room";
 import { usePlayersInRoom } from "@/app/hooks/usePlayersInRoom";
-import { useCurrentRoom } from "@/app/hooks/useCurrentRoom";
+import { useCurrentRoom, ROOM_NOT_FOUND_ERROR } from "@/app/hooks/useCurrentRoom";
 import { useDebouncedCallback } from "@/app/hooks/useDebounce";
 import { useErrorHandler, getFirebaseErrorMessage } from "@/app/hooks/useErrorHandler";
 import ErrorToast from "@/app/components/error/ErrorToast";
@@ -27,7 +27,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const [showHostSettings, setShowHostSettings] = useState(false);
   const { error, clearError, withErrorHandling } = useErrorHandler();
   
-  const { showRoleModal, confirmRole, loadingRoom } = useJoinRoom({autoJoinRoomId: roomId});
+  const { showRoleModal, confirmRole, loadingRoom, error: joinError } = useJoinRoom({autoJoinRoomId: roomId});
   const { players } = usePlayersInRoom(roomId);
   const { room, loading: roomLoading, error: roomError } = useCurrentRoom(roomId);
 
@@ -107,7 +107,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
 
   // Handle room deletion - redirect when room no longer exists
   useEffect(() => {
-    if (roomError?.message === 'Room does not exist') {
+    if (roomError?.message === ROOM_NOT_FOUND_ERROR) {
       // Give a brief moment for user to see what happened, then redirect
       const timer = setTimeout(() => {
         router.push('/?message=room-deleted');
@@ -144,7 +144,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
 
   
   // Show appropriate message while redirecting
-  if (roomError?.message === 'Room does not exist') {
+  if (roomError?.message === ROOM_NOT_FOUND_ERROR) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <div className="alert alert-warning max-w-md mb-4">
@@ -184,7 +184,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
 
   return (
     <div className="w-full">
-      <ErrorToast error={error} onDismiss={clearError} />
+      <ErrorToast error={error || joinError} onDismiss={clearError} />
       {showRoleModal && <JoinRoleModal onSelectRole={confirmRole} />}
       {!roomLoading && !isSpectator && <PlayingCardSelector reset={resetCardSelector} playerId={playerAuth?.uid} onSelect={updatePlayerSelection} />}
       <div className='flex flex-wrap gap-4 justify-center p-6'>
