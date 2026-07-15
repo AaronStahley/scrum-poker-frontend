@@ -10,6 +10,8 @@ import { updatePlayers, updatePlayer } from "@/lib/firebase/player";
 import { updateRoom, removePlayerFromRoom, deleteRoom, updateRoomName, updateRoomPermissions, togglePlayerRole } from "@/lib/firebase/room";
 import { usePlayersInRoom } from "@/app/hooks/usePlayersInRoom";
 import { useCurrentRoom, ROOM_NOT_FOUND_ERROR } from "@/app/hooks/useCurrentRoom";
+import { usePresenceBeacon } from "@/app/hooks/usePresenceBeacon";
+import { usePlayersPresence } from "@/app/hooks/usePlayersPresence";
 import { useDebouncedCallback } from "@/app/hooks/useDebounce";
 import { useErrorHandler, getFirebaseErrorMessage } from "@/app/hooks/useErrorHandler";
 import ErrorToast from "@/app/components/error/ErrorToast";
@@ -30,6 +32,8 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const { showRoleModal, confirmRole, loadingRoom, error: joinError } = useJoinRoom({autoJoinRoomId: roomId});
   const { players } = usePlayersInRoom(roomId);
   const { room, loading: roomLoading, error: roomError } = useCurrentRoom(roomId);
+  usePresenceBeacon(playerAuth?.uid);
+  const presence = usePlayersPresence(players.map(p => p.id));
 
   const updatePlayerSelectionImmediate = useCallback(async (playerId: string, selection: string | number) => {
     // Validate that player can only update their own selection
@@ -212,6 +216,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
         playerRemovalPermissions={room?.playerRemovalPermissions || 'host-only'}
         spectatorIds={spectatorIds}
         onToggleRole={handleTogglePlayerRole}
+        presence={presence}
       />
       <HostSettingsModal
         isOpen={showHostSettings}

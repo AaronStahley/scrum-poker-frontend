@@ -8,6 +8,7 @@ import {
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
+import { toDate } from '@/lib/firebase/timestamps';
 import { Player } from '@/types/player';
 
 function chunkArray(array: string[], size: number) {
@@ -67,9 +68,12 @@ export function usePlayersInRoom(roomId: string) {
           const unsubscribe = onSnapshot(q, (snapshot) => {
             // Update the map with players from this chunk
             snapshot.docs.forEach((doc) => {
-              const playerData = {
-                ...(doc.data() as Player),
+              const data = doc.data();
+              const playerData: Player = {
+                ...(data as Player),
                 id: doc.id,
+                lastJoinedAt: toDate(data.lastJoinedAt),
+                createdAt: toDate(data.createdAt),
               };
               playersMap.set(doc.id, playerData);
             });
