@@ -7,6 +7,7 @@ vi.mock('@/lib/firebase/firebase', () => ({
   auth: {
     currentUser: null,
   },
+  rtdb: {},
   getFirebaseNoReplyEmail: vi.fn(() => 'noreply@test.firebaseapp.com'),
 }))
 
@@ -24,6 +25,15 @@ vi.mock('firebase/firestore', () => ({
   addDoc: vi.fn(),
   arrayUnion: vi.fn(),
   collectionGroup: vi.fn(),
+}))
+
+vi.mock('firebase/database', () => ({
+  getDatabase: vi.fn(),
+  ref: vi.fn(),
+  onValue: vi.fn(() => () => {}),
+  onDisconnect: vi.fn(),
+  set: vi.fn(),
+  serverTimestamp: vi.fn(),
 }))
 
 vi.mock('firebase/auth', () => ({

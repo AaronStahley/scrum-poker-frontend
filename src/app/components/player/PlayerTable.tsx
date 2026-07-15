@@ -4,6 +4,8 @@ import { Player } from '../../../types/player';
 import { PlayerRemovalPermission } from '../../../types/room';
 import { TrashIcon, ArrowLongUpIcon, ArrowLongDownIcon, ArrowsUpDownIcon, StarIcon, EyeIcon, EyeSlashIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import { MinusIcon, LockClosedIcon } from '@heroicons/react/16/solid';
+import { formatRelativeTime } from '@/lib/playerActivity';
+import { PresenceInfo } from '@/app/hooks/usePlayersPresence';
 
 interface PlayerTableProps {
   initislSortDirection: string;
@@ -15,6 +17,7 @@ interface PlayerTableProps {
   playerRemovalPermissions?: PlayerRemovalPermission;
   spectatorIds?: string[];
   onToggleRole?: (playerId: string, currentlySpectator: boolean) => void;
+  presence?: Record<string, PresenceInfo>;
 }
 
 type SortDirection = 'asc' | 'desc' | 'none';
@@ -29,6 +32,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
   playerRemovalPermissions = 'host-only',
   spectatorIds = [],
   onToggleRole,
+  presence = {},
 }) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(initislSortDirection as SortDirection);
   const [sortedPlayers, setSortePlayers] = useState<Player[]>(players);
@@ -64,6 +68,13 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
     return () => clearTimeout(timeout);
   }, []);
 
+  // Keep "Last active Xm ago" tooltip text fresh without waiting for a presence update.
+  const [now, setNow] = useState<Date>(() => new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
   if (isLoading || !players || players.length === 0) {
     const length = 3;
     return (
@@ -97,6 +108,10 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
     const isPlayerHost = player.id === roomOwnerId;
     const isSpectator = spectatorIds.includes(player.id);
 
+    const playerPresence = presence[player.id];
+    const isOnline = playerPresence?.online ?? false;
+    const lastActive = playerPresence?.lastChanged ?? player.lastJoinedAt;
+
     const canRemove = !isPlayerHost && !isCurrentPlayer && (
       playerRemovalPermissions === 'host-only' ? isHost : true
     );
@@ -106,6 +121,12 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
       <tr key={player.id} className={`hover${isSpectator ? ' opacity-60' : ''}`}>
         <td className="p-3">
           <div className="flex items-center gap-2">
+            <span
+              className={`w-2 h-2 rounded-full flex-shrink-0 tooltip tooltip-right ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}
+              data-tip={isOnline
+                ? 'Online now'
+                : `Last active ${formatRelativeTime(lastActive, now)}`}
+            />
             {isPlayerHost && <StarIcon className="h-5 w-5 text-yellow-500" title="Room Host" />}
             <span>{player.name}</span>
           </div>
