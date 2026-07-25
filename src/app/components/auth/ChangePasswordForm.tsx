@@ -158,9 +158,10 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onSuccess }) =>
           <div className="form-control pt-4">
             <button
               type="submit"
-              className={`btn btn-primary ${isSubmitting ? 'loading' : ''}`}
+              className="btn btn-primary"
               disabled={isSubmitting}
             >
+              {isSubmitting && <span className="loading loading-spinner loading-sm" />}
               {isSubmitting ? 'Updating...' : 'Update Password'}
             </button>
           </div>

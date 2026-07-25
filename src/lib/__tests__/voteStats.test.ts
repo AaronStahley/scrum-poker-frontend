@@ -109,4 +109,53 @@ describe('calculateVoteStats', () => {
     expect(stats.consensus).toBe('none');
     expect(stats.totalPlayerCount).toBe(0);
   });
+
+  it('ranges over t-shirt sizes without a numeric recommendation', () => {
+    const players = [makePlayer('1', 'S'), makePlayer('2', 'L')];
+    const stats = calculateVoteStats(players, [], 't-shirt');
+    expect(stats.isNumericSequence).toBe(false);
+    expect(stats.recommended).toBeNull();
+    expect(stats.min).toBe('S');
+    expect(stats.max).toBe('L');
+    expect(stats.consensus).toBe('split');
+  });
+
+  it('excludes votes that do not belong to the sequence', () => {
+    // Fibonacci votes left behind after a switch to t-shirt sizes
+    const players = [makePlayer('1', 'M'), makePlayer('2', 13), makePlayer('3', 8)];
+    const stats = calculateVoteStats(players, [], 't-shirt');
+    expect(stats.numericVoteCount).toBe(1);
+    expect(stats.totalPlayerCount).toBe(3);
+    expect(stats.min).toBe('M');
+    expect(stats.max).toBe('M');
+    expect(stats.consensus).toBe('unanimous');
+  });
+
+  it('excludes non-numeric votes from a numeric sequence', () => {
+    // T-shirt votes left behind after a switch back to fibonacci
+    const players = [makePlayer('1', 'XL'), makePlayer('2', 5)];
+    const stats = calculateVoteStats(players, [], 'fibonacci');
+    expect(stats.numericVoteCount).toBe(1);
+    expect(stats.recommended).toBe(5);
+    expect(stats.min).toBe(5);
+    expect(stats.max).toBe(5);
+  });
+
+  it('returns none consensus when every vote is unrecognized', () => {
+    const players = [makePlayer('1', 13), makePlayer('2', 21)];
+    const stats = calculateVoteStats(players, [], 't-shirt');
+    expect(stats.numericVoteCount).toBe(0);
+    expect(stats.min).toBeNull();
+    expect(stats.max).toBeNull();
+    expect(stats.consensus).toBe('none');
+  });
+
+  it('snaps to the half-point card in the modified fibonacci sequence', () => {
+    const players = [makePlayer('1', 0), makePlayer('2', 1)];
+    const stats = calculateVoteStats(players, [], 'modified-fibonacci');
+    expect(stats.recommended).toBe(0.5);
+    expect(stats.min).toBe(0);
+    expect(stats.max).toBe(1);
+    expect(stats.consensus).toBe('split');
+  });
 });

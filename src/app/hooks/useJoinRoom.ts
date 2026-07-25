@@ -86,15 +86,10 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
   const joinRoom = useCallback(async (roomId: string): Promise<boolean> => {
     console.log("Joining room:", roomId);
 
-    if (!player) {
-      console.log("Player is not authenticated.");
+    if (!player || !player.displayName) {
+      console.log(!player ? "Player is not authenticated." : "Player does not have a display name.");
       setShowCreateNewPlayerModal(true);
       setPendingRoomId(roomId);
-      return true;
-    }
-
-    if (!player.displayName) {
-      console.log("Player does not have a display name.");
       return true;
     }
 
@@ -104,6 +99,13 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
       // If already in the room, just update presence without asking for role
       const alreadyInRoom = await isPlayerInRoom(roomId, player.uid);
       if (alreadyInRoom) {
+        // Room creation seeds the creator's uid into the room's players array directly,
+        // without creating their player profile doc — create it here if missing so the
+        // updatePlayer below doesn't fail with NOT_FOUND.
+        const playerExistsInDb = await playerExists(player.uid);
+        if (!playerExistsInDb) {
+          await createPlayer(player.uid, player.displayName);
+        }
         await Promise.all([
           updatePlayer(player.uid, { currentRoom: roomId, lastJoinedAt: new Date() }),
           touchRoom(roomId),

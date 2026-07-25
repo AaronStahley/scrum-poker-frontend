@@ -1,50 +1,107 @@
 import { Player } from '@/types/player';
-
-const STORY_POINTS = [0, 1, 2, 3, 5, 8, 13, 21];
+import { CardSequenceType } from '@/types/room';
+import {
+  getCardSequenceConfig,
+  getOrderedValues,
+  getNumericValues,
+  DEFAULT_CARD_SEQUENCE,
+} from './cardSequences';
 
 export interface VoteStats {
   recommended: number | null;
-  min: number | null;
-  max: number | null;
+  min: number | string | null;
+  max: number | string | null;
   consensus: 'unanimous' | 'close' | 'split' | 'none';
   numericVoteCount: number;
   totalPlayerCount: number;
   hasNonNumericVotes: boolean;
+  isNumericSequence: boolean;
 }
 
-function nearestStoryPoint(value: number): number {
-  return STORY_POINTS.reduce((prev, curr) =>
-    Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+const CLOSE_INDEX_DISTANCE = 1;
+
+function nearestValue(values: number[], target: number): number {
+  return values.reduce((prev, curr) =>
+    Math.abs(curr - target) < Math.abs(prev - target) ? curr : prev
   );
 }
 
-export function calculateVoteStats(players: Player[], spectatorIds: string[] = []): VoteStats {
-  const voters = players.filter(p => !spectatorIds.includes(p.id));
-  const numericVotes = voters
-    .map(p => p.selection)
-    .filter((s): s is number => typeof s === 'number');
+// Returns -1 when the vote doesn't belong to this sequence (e.g. a Fibonacci vote
+// left over after the host switched to T-shirt sizes). Callers must drop those
+// rather than snapping them onto a card the player never picked.
+function closestIndex(
+  orderedValues: (number | string)[],
+  vote: number | string,
+  isNumeric: boolean
+): number {
+  if (!isNumeric) return orderedValues.indexOf(vote);
+  if (typeof vote !== 'number') return -1;
+  const numericValues = orderedValues.filter((v): v is number => typeof v === 'number');
+  if (numericValues.length === 0) return -1;
+  const nearest = nearestValue(numericValues, vote);
+  return orderedValues.indexOf(nearest);
+}
 
+export function calculateVoteStats(
+  players: Player[],
+  spectatorIds: string[] = [],
+  cardSequence: CardSequenceType = DEFAULT_CARD_SEQUENCE
+): VoteStats {
+  const config = getCardSequenceConfig(cardSequence);
+  const orderedValues = getOrderedValues(config);
+
+  const voters = players.filter((p) => !spectatorIds.includes(p.id));
   const totalPlayerCount = voters.length;
-  const numericVoteCount = numericVotes.length;
-  const hasNonNumericVotes = voters.some(p => p.selection !== null && typeof p.selection !== 'number');
+
+  const scoredVotes = voters
+    .map((p) => p.selection)
+    .filter((s): s is number | string => s !== null && s !== undefined && s !== '?')
+    .map((vote) => ({ vote, index: closestIndex(orderedValues, vote, config.isNumeric) }))
+    .filter((v) => v.index !== -1);
+  const countedVotes = scoredVotes.map((v) => v.vote);
+  const hasNonNumericVotes = voters.some((p) => p.selection === '?');
+  const numericVoteCount = countedVotes.length;
 
   if (numericVoteCount === 0) {
-    return { recommended: null, min: null, max: null, consensus: 'none', numericVoteCount, totalPlayerCount: voters.length, hasNonNumericVotes };
+    return {
+      recommended: null,
+      min: null,
+      max: null,
+      consensus: 'none',
+      numericVoteCount,
+      totalPlayerCount,
+      hasNonNumericVotes,
+      isNumericSequence: config.isNumeric,
+    };
   }
 
-  const min = Math.min(...numericVotes);
-  const max = Math.max(...numericVotes);
-  const average = numericVotes.reduce((sum, v) => sum + v, 0) / numericVoteCount;
-  const recommended = nearestStoryPoint(average);
+  const indices = scoredVotes.map((v) => v.index);
+  const minIndex = Math.min(...indices);
+  const maxIndex = Math.max(...indices);
+  const min = orderedValues[minIndex];
+  const max = orderedValues[maxIndex];
 
-  let consensus: VoteStats['consensus'];
-  if (min === max) {
-    consensus = 'unanimous';
-  } else if (max - min <= 2) {
-    consensus = 'close';
-  } else {
-    consensus = 'split';
+  let recommended: number | null = null;
+  if (config.isNumeric) {
+    const numericVotes = countedVotes.filter((v): v is number => typeof v === 'number');
+    if (numericVotes.length > 0) {
+      const average = numericVotes.reduce((sum, v) => sum + v, 0) / numericVotes.length;
+      recommended = nearestValue(getNumericValues(config), average);
+    }
   }
 
-  return { recommended, min, max, consensus, numericVoteCount, totalPlayerCount, hasNonNumericVotes };
+  const distance = maxIndex - minIndex;
+  const consensus: VoteStats['consensus'] =
+    distance === 0 ? 'unanimous' : distance <= CLOSE_INDEX_DISTANCE ? 'close' : 'split';
+
+  return {
+    recommended,
+    min,
+    max,
+    consensus,
+    numericVoteCount,
+    totalPlayerCount,
+    hasNonNumericVotes,
+    isNumericSequence: config.isNumeric,
+  };
 }

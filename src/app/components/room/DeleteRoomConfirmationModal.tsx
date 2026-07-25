@@ -89,13 +89,13 @@ const DeleteRoomConfirmationModal: React.FC<DeleteRoomConfirmationModalProps> = 
           >
             Cancel
           </button>
-          <button 
-            type="button" 
-            className={`btn btn-error min-w-32 ${isDeleting ? 'loading' : ''}`}
+          <button
+            type="button"
+            className="btn btn-error min-w-32"
             onClick={handleDelete}
             disabled={isDeleting}
           >
-            <TrashIcon className="h-5 w-5" />
+            {isDeleting ? <span className="loading loading-spinner loading-sm" /> : <TrashIcon className="h-5 w-5" />}
             {isDeleting ? 'Deleting...' : 'Delete Room'}
           </button>
         </div>
