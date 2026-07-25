@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Cog6ToothIcon, PencilIcon, UserGroupIcon, TrashIcon } from "@heroicons/react/20/solid";
-import { PlayerRemovalPermission } from "@/types/room";
+import { Cog6ToothIcon, PencilIcon, UserGroupIcon, TrashIcon, Squares2X2Icon } from "@heroicons/react/20/solid";
+import { PlayerRemovalPermission, CardSequenceType } from "@/types/room";
 import DeleteRoomConfirmationModal from "./DeleteRoomConfirmationModal";
+import CardSequenceRadioGroup from "./CardSequenceRadioGroup";
 
 interface HostSettingsModalProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface HostSettingsModalProps {
   onDeleteRoom: () => Promise<void>;
   playerRemovalPermissions: PlayerRemovalPermission;
   onUpdatePermissions: (permissions: PlayerRemovalPermission) => Promise<void>;
+  cardSequence: CardSequenceType;
+  onUpdateCardSequence: (cardSequence: CardSequenceType) => Promise<void>;
 }
 
 const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
@@ -23,9 +26,12 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
   onDeleteRoom,
   playerRemovalPermissions,
   onUpdatePermissions,
+  cardSequence,
+  onUpdateCardSequence,
 }) => {
   const [roomName, setRoomName] = useState(currentRoomName);
   const [permissions, setPermissions] = useState<PlayerRemovalPermission>(playerRemovalPermissions);
+  const [sequence, setSequence] = useState<CardSequenceType>(cardSequence);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -82,10 +88,28 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
     }
   };
 
+  const handleUpdateCardSequence = async (newSequence: CardSequenceType) => {
+    if (newSequence === cardSequence) return;
+
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      await onUpdateCardSequence(newSequence);
+      setSequence(newSequence);
+    } catch (err: unknown) {
+      setError((err as Error).message);
+      setSequence(cardSequence); // Reset on error
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleClose = () => {
     if (isSubmitting || isDeleting) return;
     setRoomName(currentRoomName);
     setPermissions(playerRemovalPermissions);
+    setSequence(cardSequence);
     setError("");
     onClose();
   };
@@ -167,11 +191,12 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
                     >
                       Reset
                     </button>
-                    <button 
-                      type="submit" 
-                      className={`btn btn-primary ${isSubmitting ? 'loading' : ''}`}
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
                       disabled={isSubmitting || roomName.trim() === currentRoomName.trim()}
                     >
+                      {isSubmitting && <span className="loading loading-spinner loading-sm" />}
                       {isSubmitting ? 'Updating...' : 'Update Name'}
                     </button>
                   </div>
@@ -224,6 +249,25 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
                       </div>
                     </label>
                 </div>
+              </div>
+            </div>
+
+            {/* Card Sequence Section */}
+            <div className="card bg-base-100 border border-base-300">
+              <div className="card-body p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Squares2X2Icon className="h-5 w-5 text-primary" />
+                  <h4 className="font-semibold text-lg">Card Sequence</h4>
+                </div>
+
+                <p className="text-sm text-base-content/70 mb-4 ml-8">Which cards players can vote with</p>
+
+                <CardSequenceRadioGroup
+                  value={sequence}
+                  onChange={handleUpdateCardSequence}
+                  name="cardSequence"
+                  disabled={isSubmitting || isDeleting}
+                />
               </div>
             </div>
 

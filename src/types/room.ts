@@ -1,4 +1,5 @@
 export type PlayerRemovalPermission = 'host-only' | 'all-players';
+export type CardSequenceType = 'fibonacci' | 'modified-fibonacci' | 't-shirt';
 
 export interface Room {
     id: string;
@@ -9,5 +10,6 @@ export interface Room {
     players: string[];
     spectators?: string[];
     playerRemovalPermissions?: PlayerRemovalPermission;
+    cardSequence?: CardSequenceType;
     lastActivity?: Date;
 }

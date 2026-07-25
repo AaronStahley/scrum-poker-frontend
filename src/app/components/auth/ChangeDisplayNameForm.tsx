@@ -153,9 +153,10 @@ const ChangeDisplayNameForm: React.FC<ChangeDisplayNameFormProps> = ({ onSuccess
           <div className="form-control pt-4">
             <button
               type="submit"
-              className={`btn btn-primary ${isSubmitting ? 'loading' : ''}`}
+              className="btn btn-primary"
               disabled={isSubmitting}
             >
+              {isSubmitting && <span className="loading loading-spinner loading-sm" />}
               {isSubmitting ? 'Updating...' : 'Update Display Name'}
             </button>
           </div>

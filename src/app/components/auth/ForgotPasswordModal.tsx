@@ -154,11 +154,12 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
-                  className={`btn btn-primary ${isSubmitting ? 'loading' : ''}`}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
                   disabled={isSubmitting}
                 >
+                  {isSubmitting && <span className="loading loading-spinner loading-sm" />}
                   {isSubmitting ? 'Sending...' : 'Send Reset Email'}
                 </button>
               </div>

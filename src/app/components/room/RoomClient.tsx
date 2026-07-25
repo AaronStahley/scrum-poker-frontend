@@ -7,7 +7,7 @@ import PlayingCardSelector from "../card/PlayingCardSelector";
 import { useAuth } from "@/app/contexts/auth";
 import useJoinRoom from "@/app/hooks/useJoinRoom";
 import { updatePlayers, updatePlayer } from "@/lib/firebase/player";
-import { updateRoom, removePlayerFromRoom, deleteRoom, updateRoomName, updateRoomPermissions, togglePlayerRole } from "@/lib/firebase/room";
+import { updateRoom, removePlayerFromRoom, deleteRoom, updateRoomName, updateRoomPermissions, updateRoomCardSequence, togglePlayerRole } from "@/lib/firebase/room";
 import { usePlayersInRoom } from "@/app/hooks/usePlayersInRoom";
 import { useCurrentRoom, ROOM_NOT_FOUND_ERROR } from "@/app/hooks/useCurrentRoom";
 import { usePresenceBeacon } from "@/app/hooks/usePresenceBeacon";
@@ -19,7 +19,7 @@ import HostSettingsModal from "./HostSettingsModal";
 import VoteStatistics from "./VoteStatistics";
 import JoinRoleModal from "./JoinRoleModal";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { PlayerRemovalPermission } from "@/types/room";
+import { PlayerRemovalPermission, CardSequenceType } from "@/types/room";
 
 const RoomClient = ({ roomId }: { roomId: string }) => {
   const { player: playerAuth } = useAuth();
@@ -103,6 +103,13 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
       throw new Error("You must be logged in to update permissions");
     }
     await updateRoomPermissions(roomId, permissions, playerAuth.uid);
+  };
+
+  const handleUpdateCardSequence = async (cardSequence: CardSequenceType): Promise<void> => {
+    if (!playerAuth?.uid) {
+      throw new Error("You must be logged in to update the card sequence");
+    }
+    await updateRoomCardSequence(roomId, cardSequence, playerAuth.uid);
   };
 
   const isHost = playerAuth?.uid && room?.createdBy && room.createdBy !== 'anonymous' && playerAuth.uid === room.createdBy;
@@ -190,7 +197,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
     <div className="w-full">
       <ErrorToast error={error || joinError} onDismiss={clearError} />
       {showRoleModal && <JoinRoleModal onSelectRole={confirmRole} />}
-      {!roomLoading && !isSpectator && <PlayingCardSelector reset={resetCardSelector} playerId={playerAuth?.uid} onSelect={updatePlayerSelection} />}
+      {!roomLoading && !isSpectator && <PlayingCardSelector reset={resetCardSelector} playerId={playerAuth?.uid} onSelect={updatePlayerSelection} cardSequence={room?.cardSequence} />}
       <div className='flex flex-wrap gap-4 justify-center p-6'>
         <button className="text-base btn btn-primary" onClick={handlRevealVotes}>Reveal Votes</button>
         <button className="text-base btn btn-secondary" onClick={resetVotes}>Reset Votes</button>
@@ -205,7 +212,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
           </button>
         )}
       </div>
-      {revealVotes && <VoteStatistics players={players} spectatorIds={spectatorIds} />}
+      {revealVotes && <VoteStatistics players={players} spectatorIds={spectatorIds} cardSequence={room?.cardSequence} />}
       <PlayerTable
         initislSortDirection="asc"
         roomOwnerId={room?.createdBy}
@@ -226,6 +233,8 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
         onDeleteRoom={handleDeleteRoom}
         playerRemovalPermissions={room?.playerRemovalPermissions || 'host-only'}
         onUpdatePermissions={handleUpdatePermissions}
+        cardSequence={room?.cardSequence || 'fibonacci'}
+        onUpdateCardSequence={handleUpdateCardSequence}
       />
     </div>
   );

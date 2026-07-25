@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.7.0] - 2026-07-25
+
+### 🆕 New Features
+
+#### Configurable Card Sequences
+- **Choose Your Deck**: When creating a room, pick from three card sequences — **Fibonacci** (default), **Modified Fibonacci** (adds a ½ card and rounds off at higher values), or **T-Shirt Sizes** (XS–XXL)
+- **Room Settings on Creation**: Clicking "Create Room" now opens a settings modal to configure the card sequence before the room is created
+- **Change It Later**: Hosts can switch a room's card sequence at any time from Room Settings, and everyone's card selector updates immediately
+- **Smarter Vote Statistics**: The Recommended estimate, Range, and Consensus badge all adapt to the chosen sequence — non-numeric decks like T-Shirt Sizes show consensus and range without a numeric estimate
+
+### 🐛 Bug Fixes
+- Fixed an issue where an already-logged-in user creating a new room could get stuck with no feedback instead of landing in their room
+- Fixed a related edge case where a returning player without a saved display name could get stuck creating a room
+- Fixed inconsistent loading-spinner animations on several buttons across the app (Update Name, Update Display Name, Update Password, Send Reset Email, Delete Room, Create Room)
+- Fixed mismatched button sizing in the new Room Settings modal
+
+### ⚡ Breaking Changes
+None — existing rooms default to Fibonacci and behave exactly as before.
+
+---
+
 ## [1.6.0] - 2026-07-15
 
 ### 🆕 New Features

@@ -5,30 +5,38 @@ import useJoinRoom from "@/app/hooks/useJoinRoom";
 import { createRoom } from "@/lib/firebase/room";
 import { useAuth } from "@/app/contexts/auth";
 import LoadOverlay from "@/app/components/loading/LoadingOverlay";
+import { CardSequenceType } from "@/types/room";
+import { DEFAULT_CARD_SEQUENCE } from "@/lib/cardSequences";
+import CreateRoomSettingsModal from "./CreateRoomSettingsModal";
+import JoinRoleModal from "./JoinRoleModal";
 
 const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
-  const { joinRoom, loadingRoom, isPending } = useJoinRoom();
-  const { player } = useAuth();
-      
-  const handleCreateNewRoomSubmit = async (e: React.FormEvent) => {
+  const [cardSequence, setCardSequence] = useState<CardSequenceType>(DEFAULT_CARD_SEQUENCE);
+  const [showSettings, setShowSettings] = useState(false);
+  const { joinRoom, loadingRoom, isPending, showRoleModal, confirmRole } = useJoinRoom();
+  const { player, showCreateNewPlayerModal } = useAuth();
+
+  const handleOpenSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const form = e.target as HTMLFormElement;
     if (form.checkValidity()) {
-      try { 
-        const roomId = await createRoom(roomName, player?.uid);
-        await joinRoom(roomId);
-      }catch (error) {
-        console.error("Error creating room:", error);
-      }
+      setShowSettings(true);
     }
+  };
+
+  const handleCreateRoom = async (): Promise<void> => {
+    const roomId = await createRoom(roomName, player?.uid, cardSequence);
+    setShowSettings(false);
+    await joinRoom(roomId);
   };
 
   return (
     <>
+      {showRoleModal && <JoinRoleModal onSelectRole={confirmRole} />}
       {(loadingRoom || isPending) && <LoadOverlay />}
-      <form onSubmit={handleCreateNewRoomSubmit} className="flex flex-col sm:flex-row items-center gap-4">
+      <form onSubmit={handleOpenSettings} className="flex flex-col sm:flex-row items-center gap-4">
         <input
           type="text"
           placeholder="Enter Room Name"
@@ -46,8 +54,15 @@ const CreateRoom = () => {
           Create Room
         </button>
       </form>
+      <CreateRoomSettingsModal
+        isOpen={showSettings && !showCreateNewPlayerModal && !showRoleModal}
+        onClose={() => setShowSettings(false)}
+        cardSequence={cardSequence}
+        onChangeCardSequence={setCardSequence}
+        onCreateRoom={handleCreateRoom}
+      />
     </>
   );
-}; 
+};
 
 export default CreateRoom;
