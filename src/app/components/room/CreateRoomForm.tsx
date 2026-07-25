@@ -28,8 +28,13 @@ const CreateRoom = () => {
 
   const handleCreateRoom = async (): Promise<void> => {
     const roomId = await createRoom(roomName, player?.uid, cardSequence);
+    // joinRoom swallows its own errors and reports failure via its return value —
+    // rethrow so the modal stays open and shows the user what happened.
+    const joined = await joinRoom(roomId);
+    if (!joined) {
+      throw new Error("Room was created, but joining it failed. Please try again.");
+    }
     setShowSettings(false);
-    await joinRoom(roomId);
   };
 
   return (

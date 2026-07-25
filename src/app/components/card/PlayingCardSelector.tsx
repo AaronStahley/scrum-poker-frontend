@@ -35,6 +35,12 @@ const PlayingCardSelector: React.FC<PlayingCardSelectorProps> = ({ playerId, onS
     }
   }, [reset]);
 
+  // A sequence change clears every selection server-side, so drop the local
+  // highlight too — otherwise it would point at a card that no longer exists.
+  useEffect(() => {
+    setSelectedValue(null);
+  }, [cardSequence]);
+
   return (
     <div className="flex flex-wrap gap-4 justify-center p-6 sm:p-4">
       {items.map(({ value, label }) => (

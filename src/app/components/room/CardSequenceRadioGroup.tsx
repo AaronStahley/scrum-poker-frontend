@@ -15,7 +15,7 @@ const CardSequenceRadioGroup: React.FC<CardSequenceRadioGroupProps> = ({ value, 
     <div className="space-y-3">
       {Object.values(CARD_SEQUENCES).map((config) => (
         <label className="cursor-pointer" key={config.id}>
-          <div className="flex items-start justify-between p-4 border border-base-300 rounded-lg hover:bg-base-50 transition-colors">
+          <div className="flex items-start justify-between p-4 border border-base-300 rounded-lg hover:bg-base-200 transition-colors">
             <div className="flex flex-col items-start">
               <span className="font-bold">{config.label}</span>
               <span className="text-sm text-base-content/70">{config.description}</span>

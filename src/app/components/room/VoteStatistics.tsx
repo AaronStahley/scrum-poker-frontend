@@ -3,6 +3,7 @@
 import { Player } from '@/types/player';
 import { CardSequenceType } from '@/types/room';
 import { calculateVoteStats } from '@/lib/voteStats';
+import { formatCardValue } from '@/lib/cardSequences';
 
 interface VoteStatisticsProps {
   players: Player[];
@@ -21,6 +22,7 @@ const VoteStatistics: React.FC<VoteStatisticsProps> = ({ players, spectatorIds =
   const { recommended, min, max, consensus, numericVoteCount, totalPlayerCount, hasNonNumericVotes, isNumericSequence } = calculateVoteStats(players, spectatorIds, cardSequence);
 
   const { label, className } = consensusConfig[consensus];
+  const display = (value: number | string) => formatCardValue(cardSequence, value);
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-6 px-6 py-4 bg-base-200 rounded-lg mx-6">
@@ -29,7 +31,7 @@ const VoteStatistics: React.FC<VoteStatisticsProps> = ({ players, spectatorIds =
           <div className="tooltip tooltip-bottom" data-tip="Nearest card to the average of all numeric votes">
             <div className="text-center">
               <div className="text-2xl font-bold">
-                {recommended !== null ? recommended : '—'}
+                {recommended !== null ? display(recommended) : '—'}
               </div>
               <div className="text-xs text-base-content/60 uppercase tracking-wide">
                 Recommended
@@ -44,7 +46,9 @@ const VoteStatistics: React.FC<VoteStatisticsProps> = ({ players, spectatorIds =
       <div className="tooltip tooltip-bottom" data-tip="The lowest and highest votes cast">
         <div className="text-center">
           <div className="text-2xl font-bold">
-            {min !== null && max !== null ? (min === max ? `${min}` : `${min} – ${max}`) : '—'}
+            {min !== null && max !== null
+              ? (min === max ? display(min) : `${display(min)} – ${display(max)}`)
+              : '—'}
           </div>
           <div className="text-xs text-base-content/60 uppercase tracking-wide">
             Range

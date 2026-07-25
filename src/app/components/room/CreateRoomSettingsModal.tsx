@@ -31,6 +31,9 @@ const CreateRoomSettingsModal: React.FC<CreateRoomSettingsModalProps> = ({
       await onCreateRoom();
     } catch (err: unknown) {
       setError((err as Error).message || "Failed to create room");
+    } finally {
+      // Not every success path unmounts this modal (e.g. the display-name modal
+      // interrupts the join), so the spinner has to clear here or the form is stuck.
       setIsSubmitting(false);
     }
   };

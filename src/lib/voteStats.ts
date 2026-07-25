@@ -26,17 +26,18 @@ function nearestValue(values: number[], target: number): number {
   );
 }
 
+// Returns -1 when the vote doesn't belong to this sequence (e.g. a Fibonacci vote
+// left over after the host switched to T-shirt sizes). Callers must drop those
+// rather than snapping them onto a card the player never picked.
 function closestIndex(
   orderedValues: (number | string)[],
   vote: number | string,
   isNumeric: boolean
 ): number {
-  if (!isNumeric) {
-    const exact = orderedValues.indexOf(vote);
-    return exact === -1 ? 0 : exact;
-  }
-  if (typeof vote !== 'number') return 0;
+  if (!isNumeric) return orderedValues.indexOf(vote);
+  if (typeof vote !== 'number') return -1;
   const numericValues = orderedValues.filter((v): v is number => typeof v === 'number');
+  if (numericValues.length === 0) return -1;
   const nearest = nearestValue(numericValues, vote);
   return orderedValues.indexOf(nearest);
 }
@@ -52,9 +53,12 @@ export function calculateVoteStats(
   const voters = players.filter((p) => !spectatorIds.includes(p.id));
   const totalPlayerCount = voters.length;
 
-  const countedVotes = voters
+  const scoredVotes = voters
     .map((p) => p.selection)
-    .filter((s): s is number | string => s !== null && s !== undefined && s !== '?');
+    .filter((s): s is number | string => s !== null && s !== undefined && s !== '?')
+    .map((vote) => ({ vote, index: closestIndex(orderedValues, vote, config.isNumeric) }))
+    .filter((v) => v.index !== -1);
+  const countedVotes = scoredVotes.map((v) => v.vote);
   const hasNonNumericVotes = voters.some((p) => p.selection === '?');
   const numericVoteCount = countedVotes.length;
 
@@ -71,7 +75,7 @@ export function calculateVoteStats(
     };
   }
 
-  const indices = countedVotes.map((v) => closestIndex(orderedValues, v, config.isNumeric));
+  const indices = scoredVotes.map((v) => v.index);
   const minIndex = Math.min(...indices);
   const maxIndex = Math.max(...indices);
   const min = orderedValues[minIndex];

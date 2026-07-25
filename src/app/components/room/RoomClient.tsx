@@ -110,6 +110,12 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
       throw new Error("You must be logged in to update the card sequence");
     }
     await updateRoomCardSequence(roomId, cardSequence, playerAuth.uid);
+    // Votes cast on the previous sequence aren't meaningful on the new one, so start
+    // the round over rather than leaving incompatible selections on the table.
+    await Promise.all([
+      updatePlayers(roomId, { selection: null }),
+      updateRoom(roomId, { status: "waiting" }),
+    ]);
   };
 
   const isHost = playerAuth?.uid && room?.createdBy && room.createdBy !== 'anonymous' && playerAuth.uid === room.createdBy;
@@ -224,6 +230,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
         spectatorIds={spectatorIds}
         onToggleRole={handleTogglePlayerRole}
         presence={presence}
+        cardSequence={room?.cardSequence}
       />
       <HostSettingsModal
         isOpen={showHostSettings}

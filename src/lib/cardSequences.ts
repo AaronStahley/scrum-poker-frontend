@@ -62,3 +62,13 @@ export function getOrderedValues(config: CardSequenceConfig): (number | string)[
 export function getNumericValues(config: CardSequenceConfig): number[] {
   return getOrderedValues(config).filter((v): v is number => typeof v === 'number');
 }
+
+// Stored selections are raw values (0.5), but cards are labelled (½) — display sites
+// must render the label so a revealed vote matches the card that was clicked.
+export function formatCardValue(
+  type: CardSequenceType | null | undefined,
+  value: number | string
+): string {
+  const config = getCardSequenceConfig(type);
+  return config.items.find((i) => i.value === value)?.label ?? String(value);
+}

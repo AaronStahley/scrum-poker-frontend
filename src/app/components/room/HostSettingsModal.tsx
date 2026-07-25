@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Cog6ToothIcon, PencilIcon, UserGroupIcon, TrashIcon, Squares2X2Icon } from "@heroicons/react/20/solid";
 import { PlayerRemovalPermission, CardSequenceType } from "@/types/room";
 import DeleteRoomConfirmationModal from "./DeleteRoomConfirmationModal";
@@ -36,6 +36,25 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
   const [error, setError] = useState("");
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const wasOpen = useRef(isOpen);
+
+  // The modal mounts before the room document arrives, so the initial state above
+  // captures the caller's fallback values ('fibonacci', 'host-only', ""). Track the
+  // props so the controls show what the room actually holds.
+  useEffect(() => {
+    setSequence(cardSequence);
+  }, [cardSequence]);
+
+  useEffect(() => {
+    setPermissions(playerRemovalPermissions);
+  }, [playerRemovalPermissions]);
+
+  // Only resync the name field on open — it's a text input, and following the prop
+  // while the modal is open would wipe out whatever the host is typing.
+  useEffect(() => {
+    if (isOpen && !wasOpen.current) setRoomName(currentRoomName);
+    wasOpen.current = isOpen;
+  }, [isOpen, currentRoomName]);
 
   const handleUpdateRoomName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +91,7 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
   };
 
   const handleUpdatePermissions = async (newPermissions: PlayerRemovalPermission) => {
-    if (newPermissions === playerRemovalPermissions) return;
+    if (newPermissions === permissions) return;
 
     setError("");
     setIsSubmitting(true);
@@ -89,7 +108,7 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
   };
 
   const handleUpdateCardSequence = async (newSequence: CardSequenceType) => {
-    if (newSequence === cardSequence) return;
+    if (newSequence === sequence) return;
 
     setError("");
     setIsSubmitting(true);
@@ -216,7 +235,7 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
                   
                 <div className="space-y-3">
                     <label className="cursor-pointer">
-                      <div className="flex items-start justify-between p-4 border border-base-300 rounded-lg hover:bg-base-50 transition-colors">
+                      <div className="flex items-start justify-between p-4 border border-base-300 rounded-lg hover:bg-base-200 transition-colors">
                         <div className="flex flex-col items-start">
                           <span className="font-bold">Host Only</span>
                           <span className="text-sm text-base-content/70">Only the room host can remove other players</span>
@@ -233,7 +252,7 @@ const HostSettingsModal: React.FC<HostSettingsModalProps> = ({
                     </label>
                     
                     <label className="cursor-pointer">
-                      <div className="flex items-start justify-between p-4 border border-base-300 rounded-lg hover:bg-base-50 transition-colors">
+                      <div className="flex items-start justify-between p-4 border border-base-300 rounded-lg hover:bg-base-200 transition-colors">
                         <div className="flex flex-col items-start">
                           <span className="font-bold">All Players</span>
                           <span className="text-sm text-base-content/70">Any player can remove other players (except the host)</span>
