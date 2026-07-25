@@ -12,6 +12,16 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
+/blob-report
+
+# Firebase emulator
+.firebase/
+firebase-debug.log
+firestore-debug.log
+database-debug.log
+ui-debug.log
 
 # next.js
 /.next/

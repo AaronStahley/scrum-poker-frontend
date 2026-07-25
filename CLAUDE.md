@@ -76,7 +76,9 @@ This application experienced critical race conditions and data corruption with m
 ### Testing
 - **Setup**: Vitest + React Testing Library + JSDOM environment
 - **Run Tests**: `npm test`, `npm run test:ui`, `npm run test:coverage`
-- **Test Files**: Located in `__tests__` directories and `src/test/`
+- **E2E Tests**: Requires Firebase emulator — run `npm run emulators` first, then `npm run test:e2e`
+- **E2E Test Files**: Located in `e2e/` directory; emulator must be running on ports 8080 (Firestore) and 9099 (Auth)
+- **Unit Test Files**: Located in `__tests__` directories and `src/test/`
 - **Coverage**: Unit tests for Firebase operations, integration tests for multi-user scenarios
 
 ### Key Architecture Changes:

@@ -1,13 +1,14 @@
 import { db } from "@/lib/firebase/firebase";
 import {
-    doc, 
-    getDoc, 
-    updateDoc, 
-    setDoc, 
+    doc,
+    getDoc,
+    updateDoc,
+    setDoc,
     collection,
     query,
-    where, 
-    getDocs, 
+    where,
+    getDocs,
+    serverTimestamp,
 } from "firebase/firestore";
 import { Player } from "@/types/player";
 import { Theme } from "@/app/contexts/theme";
@@ -75,6 +76,7 @@ export const updatePlayers = async (roomId: string, playerData: Partial<Player>)
     });
 
     await Promise.all(updatePromises);
+    await updateDoc(doc(db, 'rooms', roomId), { lastActivity: serverTimestamp() });
 };
 
 // Update player display name - this updates the name field in Firestore to match Firebase Auth displayName

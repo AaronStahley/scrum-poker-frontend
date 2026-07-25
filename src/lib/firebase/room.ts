@@ -1,15 +1,17 @@
 import {
-    doc, 
+    doc,
     addDoc,
-    getDoc, 
-    updateDoc, 
+    getDoc,
+    updateDoc,
     deleteDoc,
-    collection, 
-    arrayUnion, 
-    query, 
-    collectionGroup, 
-    where, 
-    getDocs 
+    collection,
+    arrayUnion,
+    arrayRemove,
+    query,
+    collectionGroup,
+    where,
+    getDocs,
+    serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import { Room, PlayerRemovalPermission } from "@/types/room";
@@ -31,7 +33,10 @@ export const createRoom = async (roomName: string, ownerId: string | null | unde
         playerRemovalPermissions: 'host-only',
     };
 
-    const roomRef = await addDoc(collection(db, 'rooms'), newRoom);
+    const roomRef = await addDoc(collection(db, 'rooms'), {
+        ...newRoom,
+        lastActivity: serverTimestamp(),
+    });
 
     console.log(`Room created with ID: ${roomRef.id}`);
     return roomRef.id;
@@ -43,7 +48,7 @@ export const getRoom = async (roomId: string) => {
     const roomSnap = await getDoc(roomRef);
 
     if (!roomSnap.exists()) {
-        throw new Error("Room not found");
+        return null;
     }
 
     return roomSnap.data();
@@ -71,8 +76,14 @@ export const isPlayerInRoom = async (roomId: string, playerId: string) => {
     return playerInRoom;
 };
 
+// Stamp the room's lastActivity without making any other changes
+export const touchRoom = async (roomId: string) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    await updateDoc(roomRef, { lastActivity: serverTimestamp() });
+};
+
 // Add a player to a room
-export const addPlayerToRoom = async (roomId: string, playerId: string) => {
+export const addPlayerToRoom = async (roomId: string, playerId: string, role: 'player' | 'spectator' = 'player') => {
     const roomRef = doc(db, 'rooms', roomId);
     const roomSnap = await getDoc(roomRef);
 
@@ -86,15 +97,26 @@ export const addPlayerToRoom = async (roomId: string, playerId: string) => {
     
     if (isPlayerInRoom) {
         console.log("Player already in room:", playerId);
+        await touchRoom(roomId);
         return;
     }
 
     console.log("Adding player to room:", roomId, playerId);
 
-    await updateDoc(roomRef, {
-        createdBy: roomData.createdBy === "anonymous" ? playerId : roomData.createdBy,
-        players: arrayUnion(playerId),
-    });
+    if (role === 'spectator') {
+        await updateDoc(roomRef, {
+            createdBy: roomData.createdBy === "anonymous" ? playerId : roomData.createdBy,
+            players: arrayUnion(playerId),
+            spectators: arrayUnion(playerId),
+            lastActivity: serverTimestamp(),
+        });
+    } else {
+        await updateDoc(roomRef, {
+            createdBy: roomData.createdBy === "anonymous" ? playerId : roomData.createdBy,
+            players: arrayUnion(playerId),
+            lastActivity: serverTimestamp(),
+        });
+    }
 };
 
 // Remove a player from a room
@@ -137,7 +159,19 @@ export const removePlayerFromRoom = async (roomId: string, playerId: string, cur
 
     await updateDoc(roomRef, {
         players: playersInRoom.filter((p: string) => p !== playerId),
+        spectators: arrayRemove(playerId),
+        lastActivity: serverTimestamp(),
     });
+};
+
+// Toggle a player's role between player and spectator
+export const togglePlayerRole = async (roomId: string, playerId: string, currentlySpectator: boolean) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    if (currentlySpectator) {
+        await updateDoc(roomRef, { spectators: arrayRemove(playerId), lastActivity: serverTimestamp() });
+    } else {
+        await updateDoc(roomRef, { spectators: arrayUnion(playerId), lastActivity: serverTimestamp() });
+    }
 };
 
 // Get previous rooms a player has participated in
@@ -197,7 +231,7 @@ export const updateRoomName = async (roomId: string, newName: string, currentUse
         throw new Error("Only the room host can update this room");
     }
 
-    await updateDoc(roomRef, { name: newName });
+    await updateDoc(roomRef, { name: newName, lastActivity: serverTimestamp() });
 };
 
 // Update room player removal permissions (host only)
@@ -216,5 +250,5 @@ export const updateRoomPermissions = async (roomId: string, permissions: PlayerR
         throw new Error("Only the room host can update permissions");
     }
 
-    await updateDoc(roomRef, { playerRemovalPermissions: permissions });
+    await updateDoc(roomRef, { playerRemovalPermissions: permissions, lastActivity: serverTimestamp() });
 };

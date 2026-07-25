@@ -7,13 +7,17 @@ import PlayingCardSelector from "../card/PlayingCardSelector";
 import { useAuth } from "@/app/contexts/auth";
 import useJoinRoom from "@/app/hooks/useJoinRoom";
 import { updatePlayers, updatePlayer } from "@/lib/firebase/player";
-import { updateRoom, removePlayerFromRoom, deleteRoom, updateRoomName, updateRoomPermissions } from "@/lib/firebase/room";
+import { updateRoom, removePlayerFromRoom, deleteRoom, updateRoomName, updateRoomPermissions, togglePlayerRole } from "@/lib/firebase/room";
 import { usePlayersInRoom } from "@/app/hooks/usePlayersInRoom";
-import { useCurrentRoom } from "@/app/hooks/useCurrentRoom";
+import { useCurrentRoom, ROOM_NOT_FOUND_ERROR } from "@/app/hooks/useCurrentRoom";
+import { usePresenceBeacon } from "@/app/hooks/usePresenceBeacon";
+import { usePlayersPresence } from "@/app/hooks/usePlayersPresence";
 import { useDebouncedCallback } from "@/app/hooks/useDebounce";
 import { useErrorHandler, getFirebaseErrorMessage } from "@/app/hooks/useErrorHandler";
 import ErrorToast from "@/app/components/error/ErrorToast";
 import HostSettingsModal from "./HostSettingsModal";
+import VoteStatistics from "./VoteStatistics";
+import JoinRoleModal from "./JoinRoleModal";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { PlayerRemovalPermission } from "@/types/room";
 
@@ -25,9 +29,11 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const [showHostSettings, setShowHostSettings] = useState(false);
   const { error, clearError, withErrorHandling } = useErrorHandler();
   
-  const {} = useJoinRoom({autoJoinRoomId: roomId});
+  const { showRoleModal, confirmRole, loadingRoom, error: joinError } = useJoinRoom({autoJoinRoomId: roomId});
   const { players } = usePlayersInRoom(roomId);
-  const { room, error: roomError } = useCurrentRoom(roomId);
+  const { room, loading: roomLoading, error: roomError } = useCurrentRoom(roomId);
+  usePresenceBeacon(playerAuth?.uid);
+  const presence = usePlayersPresence(players.map(p => p.id));
 
   const updatePlayerSelectionImmediate = useCallback(async (playerId: string, selection: string | number) => {
     // Validate that player can only update their own selection
@@ -84,6 +90,14 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
     router.push("/");
   };
 
+  const handleTogglePlayerRole = withErrorHandling(async (playerId: string, currentlySpectator: boolean) => {
+    if (!playerAuth?.uid) return;
+    await togglePlayerRole(roomId, playerId, currentlySpectator);
+    if (!currentlySpectator) {
+      await updatePlayer(playerId, { selection: null });
+    }
+  });
+
   const handleUpdatePermissions = async (permissions: PlayerRemovalPermission): Promise<void> => {
     if (!playerAuth?.uid) {
       throw new Error("You must be logged in to update permissions");
@@ -92,10 +106,12 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   };
 
   const isHost = playerAuth?.uid && room?.createdBy && room.createdBy !== 'anonymous' && playerAuth.uid === room.createdBy;
+  const isSpectator = room?.spectators?.includes(playerAuth?.uid ?? '') ?? false;
+  const spectatorIds = room?.spectators ?? [];
 
   // Handle room deletion - redirect when room no longer exists
   useEffect(() => {
-    if (roomError?.message === 'Room does not exist') {
+    if (roomError?.message === ROOM_NOT_FOUND_ERROR) {
       // Give a brief moment for user to see what happened, then redirect
       const timer = setTimeout(() => {
         router.push('/?message=room-deleted');
@@ -105,18 +121,19 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   }, [roomError, router]);
 
   // Handle player removal - redirect when current player is no longer in room
+  // Guard against firing while a join is in progress (role modal showing or loading)
   useEffect(() => {
+    if (showRoleModal || loadingRoom) return;
     if (playerAuth?.uid && players.length > 0) {
       const isCurrentPlayerInRoom = players.some(player => player.id === playerAuth.uid);
       if (!isCurrentPlayerInRoom) {
-        // Player was removed from the room
         const timer = setTimeout(() => {
           router.push('/?message=player-removed');
         }, 1500);
         return () => clearTimeout(timer);
       }
     }
-  }, [players, playerAuth?.uid, router]);
+  }, [players, playerAuth?.uid, router, showRoleModal, loadingRoom]);
 
   useEffect(() => {
     if (players.every(player => player.selection === null)) {
@@ -131,7 +148,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
 
   
   // Show appropriate message while redirecting
-  if (roomError?.message === 'Room does not exist') {
+  if (roomError?.message === ROOM_NOT_FOUND_ERROR) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <div className="alert alert-warning max-w-md mb-4">
@@ -148,8 +165,8 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
     );
   }
 
-  // Show message when player was removed
-  if (playerAuth?.uid && players.length > 0) {
+  // Show message when player was removed (not while a join is in progress)
+  if (!showRoleModal && !loadingRoom && playerAuth?.uid && players.length > 0) {
     const isCurrentPlayerInRoom = players.some(player => player.id === playerAuth.uid);
     if (!isCurrentPlayerInRoom) {
       return (
@@ -170,9 +187,10 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   }
 
   return (
-    <div>
-      <ErrorToast error={error} onDismiss={clearError} />
-      <PlayingCardSelector reset={resetCardSelector} playerId={playerAuth?.uid} onSelect={updatePlayerSelection} />
+    <div className="w-full">
+      <ErrorToast error={error || joinError} onDismiss={clearError} />
+      {showRoleModal && <JoinRoleModal onSelectRole={confirmRole} />}
+      {!roomLoading && !isSpectator && <PlayingCardSelector reset={resetCardSelector} playerId={playerAuth?.uid} onSelect={updatePlayerSelection} />}
       <div className='flex flex-wrap gap-4 justify-center p-6'>
         <button className="text-base btn btn-primary" onClick={handlRevealVotes}>Reveal Votes</button>
         <button className="text-base btn btn-secondary" onClick={resetVotes}>Reset Votes</button>
@@ -187,7 +205,8 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
           </button>
         )}
       </div>
-      <PlayerTable 
+      {revealVotes && <VoteStatistics players={players} spectatorIds={spectatorIds} />}
+      <PlayerTable
         initislSortDirection="asc"
         roomOwnerId={room?.createdBy}
         currentPlayerId={playerAuth?.uid ?? null}
@@ -195,6 +214,9 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
         revealVotes={revealVotes}
         removePlayer={removePlayer}
         playerRemovalPermissions={room?.playerRemovalPermissions || 'host-only'}
+        spectatorIds={spectatorIds}
+        onToggleRole={handleTogglePlayerRole}
+        presence={presence}
       />
       <HostSettingsModal
         isOpen={showHostSettings}
