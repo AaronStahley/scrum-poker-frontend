@@ -14,10 +14,15 @@ import {
     serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
-import { Room, PlayerRemovalPermission } from "@/types/room";
+import { Room, PlayerRemovalPermission, CardSequenceType } from "@/types/room";
+import { DEFAULT_CARD_SEQUENCE } from "@/lib/cardSequences";
 
 // Create a new room
-export const createRoom = async (roomName: string, ownerId: string | null | undefined) => {
+export const createRoom = async (
+    roomName: string,
+    ownerId: string | null | undefined,
+    cardSequence: CardSequenceType = DEFAULT_CARD_SEQUENCE
+) => {
     const roomStatus = "waiting";
 
     if (!ownerId) {
@@ -31,6 +36,7 @@ export const createRoom = async (roomName: string, ownerId: string | null | unde
         status: roomStatus,
         players: [ownerId] as string[],
         playerRemovalPermissions: 'host-only',
+        cardSequence,
     };
 
     const roomRef = await addDoc(collection(db, 'rooms'), {
@@ -251,4 +257,23 @@ export const updateRoomPermissions = async (roomId: string, permissions: PlayerR
     }
 
     await updateDoc(roomRef, { playerRemovalPermissions: permissions, lastActivity: serverTimestamp() });
+};
+
+// Update room card sequence (host only)
+export const updateRoomCardSequence = async (roomId: string, cardSequence: CardSequenceType, currentUserId: string) => {
+    const roomRef = doc(db, 'rooms', roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if (!roomSnap.exists()) {
+        throw new Error("Room not found");
+    }
+
+    const roomData = roomSnap.data();
+
+    // Validate that only the room owner can update the card sequence
+    if (roomData.createdBy !== currentUserId) {
+        throw new Error("Only the room host can update the card sequence");
+    }
+
+    await updateDoc(roomRef, { cardSequence, lastActivity: serverTimestamp() });
 };

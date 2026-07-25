@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { MIN_LOADING_MS } from '@/app/constants/loading';
 import { Player } from '../../../types/player';
-import { PlayerRemovalPermission } from '../../../types/room';
+import { PlayerRemovalPermission, CardSequenceType } from '../../../types/room';
+import { formatCardValue } from '@/lib/cardSequences';
 import { TrashIcon, ArrowLongUpIcon, ArrowLongDownIcon, ArrowsUpDownIcon, StarIcon, EyeIcon, EyeSlashIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import { MinusIcon, LockClosedIcon } from '@heroicons/react/16/solid';
 import { formatRelativeTime } from '@/lib/playerActivity';
@@ -18,6 +19,7 @@ interface PlayerTableProps {
   spectatorIds?: string[];
   onToggleRole?: (playerId: string, currentlySpectator: boolean) => void;
   presence?: Record<string, PresenceInfo>;
+  cardSequence?: CardSequenceType;
 }
 
 type SortDirection = 'asc' | 'desc' | 'none';
@@ -33,6 +35,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
   spectatorIds = [],
   onToggleRole,
   presence = {},
+  cardSequence,
 }) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(initislSortDirection as SortDirection);
   const [sortedPlayers, setSortePlayers] = useState<Player[]>(players);
@@ -137,7 +140,7 @@ const PlayerTable: React.FC<PlayerTableProps> = ({
           ) : player.selection === null || player.selection === undefined ? (
             <span><MinusIcon className="h-4 w-4" /></span>
           ) : revealVotes ? (
-            <span className="font-bold">{player.selection}</span>
+            <span className="font-bold">{formatCardValue(cardSequence, player.selection)}</span>
           ) : (
             <span><LockClosedIcon className="h-5 w-5" /></span>
           )}

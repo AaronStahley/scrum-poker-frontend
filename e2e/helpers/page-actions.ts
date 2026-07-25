@@ -33,14 +33,32 @@ export async function handleNewPlayerModal(
   await page.getByRole('button', { name: buttonLabel }).click();
 }
 
+export type CardSequenceLabel = 'Fibonacci' | 'Modified Fibonacci' | 'T-Shirt Sizes';
+
+// Submitting the home page form opens the room settings modal; the room isn't
+// created until "Create Room" is confirmed there.
+export async function confirmRoomSettings(
+  page: Page,
+  sequence?: CardSequenceLabel
+): Promise<void> {
+  const modal = page.locator('.modal-box').filter({ hasText: 'Room Settings' });
+  await expect(modal.getByRole('heading', { name: 'Room Settings' })).toBeVisible();
+  if (sequence) {
+    await modal.getByRole('radio', { name: new RegExp(`^${sequence}`) }).check();
+  }
+  await modal.getByRole('button', { name: 'Create Room' }).click();
+}
+
 export async function createRoomFromHomePage(
   page: Page,
   roomName: string,
-  playerName: string
+  playerName: string,
+  sequence?: CardSequenceLabel
 ): Promise<void> {
   await page.goto('/');
   await page.getByPlaceholder('Enter Room Name').fill(roomName);
   await page.getByRole('button', { name: 'Create Room' }).click();
+  await confirmRoomSettings(page, sequence);
   await handleNewPlayerModal(page, playerName);
   await page.waitForURL(/\/room\/.+/);
   await expect(page.getByRole('heading', { name: 'Select Your Story Point' })).toBeVisible();

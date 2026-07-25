@@ -1,17 +1,19 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import PlayingCard from "./PlayingCard";
-
-const storyPoints = [0, 1, 2, 3, 5, 8, 13, 21, "?"];
+import { CardSequenceType } from "@/types/room";
+import { getCardSequenceConfig } from "@/lib/cardSequences";
 
 interface PlayingCardSelectorProps {
   playerId?: string;
   onSelect: (id: string, selection: number | string) => void;
   reset: boolean;
+  cardSequence?: CardSequenceType;
 }
 
-const PlayingCardSelector: React.FC<PlayingCardSelectorProps> = ({ playerId, onSelect, reset }) => {
+const PlayingCardSelector: React.FC<PlayingCardSelectorProps> = ({ playerId, onSelect, reset, cardSequence }) => {
   const [selectedValue, setSelectedValue] = useState<number | string | null>(null);
+  const { items } = getCardSequenceConfig(cardSequence);
 
   const handleSelect = (value: number | string) => {
     if (!playerId) {
@@ -33,14 +35,20 @@ const PlayingCardSelector: React.FC<PlayingCardSelectorProps> = ({ playerId, onS
     }
   }, [reset]);
 
+  // A sequence change clears every selection server-side, so drop the local
+  // highlight too — otherwise it would point at a card that no longer exists.
+  useEffect(() => {
+    setSelectedValue(null);
+  }, [cardSequence]);
+
   return (
     <div className="flex flex-wrap gap-4 justify-center p-6 sm:p-4">
-      {storyPoints.map((point) => (
+      {items.map(({ value, label }) => (
         <PlayingCard
-          key={point}
-          value={point}
-          onSelect={() => handleSelect(point)}
-          isSelected={selectedValue === point}
+          key={String(value)}
+          value={label}
+          onSelect={() => handleSelect(value)}
+          isSelected={selectedValue === value}
         />
       ))}
     </div>

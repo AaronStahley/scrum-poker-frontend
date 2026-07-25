@@ -61,7 +61,8 @@ test('two voters with range > 2 produce Split badge', async ({ browser }) => {
   await page1.waitForTimeout(500);
   await page1.getByRole('button', { name: 'Reveal Votes' }).click();
 
-  await expect(page1.getByText('Split')).toBeVisible({ timeout: 8_000 });
+  // exact: true — the room name "Split Stats" also contains "Split"
+  await expect(page1.getByText('Split', { exact: true })).toBeVisible({ timeout: 8_000 });
   await expect(page1.getByText('2 of 2 voted')).toBeVisible();
 
   await context1.close();
