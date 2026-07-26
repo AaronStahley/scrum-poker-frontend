@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.1] - 2026-07-26
+
+### 🐛 Bug Fixes
+- Fixed the presence indicator staying "online" indefinitely for a player who left the room tab open but stopped interacting. A player is now marked offline after 5 minutes of no mouse/keyboard/touch input, and flips back online on the next real input — no reload needed. Switching to another tab does not by itself count as inactivity
+
+### ⚡ Breaking Changes
+None — additive change to the existing presence indicator.
+
+---
+
 ## [1.7.0] - 2026-07-25
 
 ### 🆕 New Features
