@@ -44,6 +44,83 @@ describe('initPresence', () => {
     expect(mockSet).toHaveBeenCalledWith({ path: 'presence/player-1' }, { online: true, lastChanged: 'SERVER_TIMESTAMP' })
   })
 
+  it('setIdle(true) marks the player offline once connected', async () => {
+    const disconnectSet = vi.fn().mockResolvedValue(undefined)
+    mockOnDisconnect.mockReturnValue({ set: disconnectSet } as unknown as database.OnDisconnect)
+    mockSet.mockResolvedValue(undefined)
+
+    let connectedCallback: (snap: { val: () => unknown }) => void = () => {}
+    mockOnValue.mockImplementation((_ref, cb) => {
+      connectedCallback = cb as typeof connectedCallback
+      return vi.fn()
+    })
+
+    const handle = initPresence('player-1')
+    connectedCallback({ val: () => true })
+    await Promise.resolve()
+    await Promise.resolve()
+    mockSet.mockClear()
+
+    handle.setIdle(true)
+
+    expect(mockSet).toHaveBeenCalledWith({ path: 'presence/player-1' }, { online: false, lastChanged: 'SERVER_TIMESTAMP' })
+  })
+
+  it('setIdle(true) is a no-op when not yet connected', () => {
+    mockOnValue.mockImplementation(() => vi.fn())
+
+    const handle = initPresence('player-1')
+    handle.setIdle(true)
+
+    expect(mockSet).not.toHaveBeenCalled()
+  })
+
+  it('setIdle(false) restores online after having gone idle while connected', async () => {
+    const disconnectSet = vi.fn().mockResolvedValue(undefined)
+    mockOnDisconnect.mockReturnValue({ set: disconnectSet } as unknown as database.OnDisconnect)
+    mockSet.mockResolvedValue(undefined)
+
+    let connectedCallback: (snap: { val: () => unknown }) => void = () => {}
+    mockOnValue.mockImplementation((_ref, cb) => {
+      connectedCallback = cb as typeof connectedCallback
+      return vi.fn()
+    })
+
+    const handle = initPresence('player-1')
+    connectedCallback({ val: () => true })
+    await Promise.resolve()
+    await Promise.resolve()
+
+    handle.setIdle(true)
+    mockSet.mockClear()
+    handle.setIdle(false)
+
+    expect(mockSet).toHaveBeenCalledWith({ path: 'presence/player-1' }, { online: true, lastChanged: 'SERVER_TIMESTAMP' })
+  })
+
+  it('setIdle does not write again when the idle state has not changed', async () => {
+    const disconnectSet = vi.fn().mockResolvedValue(undefined)
+    mockOnDisconnect.mockReturnValue({ set: disconnectSet } as unknown as database.OnDisconnect)
+    mockSet.mockResolvedValue(undefined)
+
+    let connectedCallback: (snap: { val: () => unknown }) => void = () => {}
+    mockOnValue.mockImplementation((_ref, cb) => {
+      connectedCallback = cb as typeof connectedCallback
+      return vi.fn()
+    })
+
+    const handle = initPresence('player-1')
+    connectedCallback({ val: () => true })
+    await Promise.resolve()
+    await Promise.resolve()
+
+    handle.setIdle(true)
+    mockSet.mockClear()
+    handle.setIdle(true)
+
+    expect(mockSet).not.toHaveBeenCalled()
+  })
+
   it('does nothing when .info/connected reports false', () => {
     let connectedCallback: (snap: { val: () => unknown }) => void = () => {}
     mockOnValue.mockImplementation((_ref, cb) => {
@@ -63,8 +140,8 @@ describe('initPresence', () => {
     mockOnValue.mockReturnValue(unsubscribeConnectedListener)
     mockSet.mockResolvedValue(undefined)
 
-    const cleanup = initPresence('player-1')
-    cleanup()
+    const handle = initPresence('player-1')
+    handle.cleanup()
 
     expect(unsubscribeConnectedListener).toHaveBeenCalled()
     expect(mockSet).toHaveBeenCalledWith({ path: 'presence/player-1' }, { online: false, lastChanged: 'SERVER_TIMESTAMP' })
