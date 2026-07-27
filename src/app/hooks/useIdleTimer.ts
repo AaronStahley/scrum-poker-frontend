@@ -35,6 +35,10 @@ export function useIdleTimer({
 
     const handleActivity = () => {
       lastActivityRef.current = Date.now();
+      if (wasIdleRef.current) {
+        wasIdleRef.current = false;
+        onIdleChangeRef.current(false);
+      }
     };
 
     for (const event of ACTIVITY_EVENTS) {

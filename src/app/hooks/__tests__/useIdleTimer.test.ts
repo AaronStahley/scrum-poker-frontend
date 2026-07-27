@@ -47,7 +47,7 @@ describe('useIdleTimer', () => {
     expect(onIdleChange).not.toHaveBeenCalled()
   })
 
-  it('reports active exactly once after a qualifying event following an idle period', () => {
+  it('reports active immediately on a qualifying event following an idle period', () => {
     const onIdleChange = vi.fn()
     renderHook(() =>
       useIdleTimer({ onIdleChange, idleTimeoutMs: IDLE_TIMEOUT_MS, pollIntervalMs: POLL_INTERVAL_MS })
@@ -61,11 +61,24 @@ describe('useIdleTimer', () => {
 
     act(() => {
       window.dispatchEvent(new Event('keydown'))
-      vi.advanceTimersByTime(POLL_INTERVAL_MS)
     })
 
     expect(onIdleChange).toHaveBeenCalledTimes(2)
     expect(onIdleChange).toHaveBeenLastCalledWith(false)
+  })
+
+  it('does not report active again from further activity while already active', () => {
+    const onIdleChange = vi.fn()
+    renderHook(() =>
+      useIdleTimer({ onIdleChange, idleTimeoutMs: IDLE_TIMEOUT_MS, pollIntervalMs: POLL_INTERVAL_MS })
+    )
+
+    act(() => {
+      window.dispatchEvent(new Event('mousemove'))
+      window.dispatchEvent(new Event('keydown'))
+    })
+
+    expect(onIdleChange).not.toHaveBeenCalled()
   })
 
   it('removes activity listeners on unmount', () => {
