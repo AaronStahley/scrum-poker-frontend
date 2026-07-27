@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.2] - 2026-07-27
+
+### 🐛 Bug Fixes
+- Fixed a delay of up to 15 seconds before the presence indicator flipped back to "online" after an idle player started interacting again. The active transition now fires immediately on the first mouse/keyboard/touch input instead of waiting for the next periodic check
+
+### ⚡ Breaking Changes
+None — additive change to the existing presence indicator.
+
+---
+
 ## [1.7.1] - 2026-07-26
 
 ### 🐛 Bug Fixes
