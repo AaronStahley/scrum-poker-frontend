@@ -1,0 +1,222 @@
+rules_version = '2';
+
+// Firestore security rules for The Scrum Poker.
+//
+// The client is the only writer (the cleanup service uses the Admin SDK, which
+// bypasses these rules), so every permission the UI enforces -- host-only
+// settings, removal permissions, "only update your own card" -- must also be
+// enforced here. Client-side checks alone can be skipped by calling the
+// Firestore API directly with the public web config.
+//
+// Field validation is applied only to the keys a write changes, so legacy
+// documents with extra or out-of-range fields can still be updated.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // lastActivity is always written with serverTimestamp().
+    function lastActivityOk() {
+      return !('lastActivity' in changedKeys())
+        || request.resource.data.lastActivity == request.time;
+    }
+
+    function isValidRoomName(name) {
+      return name is string && name.size() > 0 && name.size() <= 50;
+    }
+
+    function isValidRemovalPermission(value) {
+      return value in ['host-only', 'all-players'];
+    }
+
+    function isValidCardSequence(value) {
+      return value in ['fibonacci', 'modified-fibonacci', 't-shirt'];
+    }
+
+    // ---------------------------------------------------------------- rooms
+
+    function isHost() {
+      return resource.data.createdBy == uid();
+    }
+
+    function isMember() {
+      return uid() in resource.data.players;
+    }
+
+    function oldSpectators() {
+      return resource.data.get('spectators', []).toSet();
+    }
+
+    function newSpectators() {
+      return request.resource.data.get('spectators', []).toSet();
+    }
+
+    // A first-time visitor has no session yet when they click Create Room, so
+    // createRoom writes the placeholder owner "anonymous"; the creator signs in
+    // at the name prompt and claims the room when they join (see isJoin).
+    function isValidRoomOwner(room) {
+      return (isSignedIn() && room.createdBy == uid() && room.players == [uid()])
+        || (room.createdBy == 'anonymous' && room.players == ['anonymous']);
+    }
+
+    function isValidNewRoom() {
+      let room = request.resource.data;
+      return room.keys().hasOnly(['createdAt', 'createdBy', 'name', 'status', 'players',
+                                  'playerRemovalPermissions', 'cardSequence', 'lastActivity'])
+        && isValidRoomOwner(room)
+        && room.status == 'waiting'
+        && room.createdAt is timestamp
+        && room.lastActivity == request.time
+        && isValidRoomName(room.name)
+        && isValidRemovalPermission(room.playerRemovalPermissions)
+        && isValidCardSequence(room.cardSequence);
+    }
+
+    // Stamping lastActivity (re-entering a room, starting a new round).
+    function isTouch() {
+      return isMember() && changedKeys().hasOnly(['lastActivity']);
+    }
+
+    // addPlayerToRoom: the caller adds themselves -- and only themselves -- to
+    // players (and spectators when joining as one). A legacy room created with
+    // createdBy "anonymous" is claimed by its first joiner.
+    function isJoin() {
+      let oldPlayers = resource.data.players;
+      let newPlayers = request.resource.data.players;
+      let createdByOk = !('createdBy' in changedKeys())
+        || (resource.data.createdBy == 'anonymous' && request.resource.data.createdBy == uid());
+      let spectatorsOk = !('spectators' in changedKeys())
+        || newSpectators() == oldSpectators().union([uid()].toSet());
+      return !isMember()
+        && changedKeys().hasOnly(['players', 'spectators', 'lastActivity', 'createdBy'])
+        && newPlayers.size() == oldPlayers.size() + 1
+        && newPlayers.hasAll(oldPlayers)
+        && uid() in newPlayers
+        && createdByOk
+        && spectatorsOk;
+    }
+
+    // removePlayerFromRoom: removes exactly one other, non-host player.
+    // Host-only by default; any member when the room allows it.
+    function isRemoval() {
+      let oldPlayers = resource.data.players;
+      let newPlayers = request.resource.data.players;
+      let removed = oldPlayers.toSet().difference(newPlayers.toSet());
+      let permission = resource.data.get('playerRemovalPermissions', 'host-only');
+      return isMember()
+        && changedKeys().hasOnly(['players', 'spectators', 'lastActivity'])
+        && newPlayers.size() == oldPlayers.size() - 1
+        && oldPlayers.hasAll(newPlayers)
+        && removed.size() == 1
+        && !(uid() in removed)
+        && !(resource.data.createdBy in removed)
+        && newSpectators() == oldSpectators().difference(removed)
+        && (isHost() || permission == 'all-players');
+    }
+
+    // togglePlayerRole: moves exactly one player in or out of spectators.
+    // Players may toggle themselves; the host may toggle anyone but themselves.
+    function isRoleToggle() {
+      let added = newSpectators().difference(oldSpectators());
+      let dropped = oldSpectators().difference(newSpectators());
+      let target = added.union(dropped);
+      return isMember()
+        && changedKeys().hasOnly(['spectators', 'lastActivity'])
+        && target.size() == 1
+        && resource.data.players.toSet().hasAll(target)
+        && (target.hasAll([uid()]) || (isHost() && !target.hasAll([resource.data.createdBy])));
+    }
+
+    // Reveal votes / reset the round.
+    function isStatusChange() {
+      return isMember()
+        && changedKeys().hasOnly(['status', 'lastActivity'])
+        && request.resource.data.status in ['waiting', 'revealed'];
+    }
+
+    // Host settings: room name, removal permissions, card sequence.
+    function isHostSettingsChange() {
+      let room = request.resource.data;
+      let keys = changedKeys();
+      return isHost()
+        && keys.hasOnly(['name', 'playerRemovalPermissions', 'cardSequence', 'lastActivity'])
+        && (!('name' in keys) || isValidRoomName(room.name))
+        && (!('playerRemovalPermissions' in keys) || isValidRemovalPermission(room.playerRemovalPermissions))
+        && (!('cardSequence' in keys) || isValidCardSequence(room.cardSequence));
+    }
+
+    match /rooms/{roomId} {
+      // Anyone with a room's ID may read it -- that is how invite links work.
+      // This includes signed-out reads: the room page (src/app/room/[roomId]/page.tsx)
+      // is a server component that fetches the room without a Firebase session.
+      allow get: if true;
+      allow create: if isValidNewRoom();
+      allow update: if isSignedIn() && lastActivityOk() && (
+        isTouch()
+        || isJoin()
+        || isRemoval()
+        || isRoleToggle()
+        || isStatusChange()
+        || isHostSettingsChange()
+      );
+      allow delete: if isSignedIn() && isHost();
+    }
+
+    // "Previous rooms" uses a collection-group query on players array-contains
+    // uid. Listing is limited to rooms the caller belongs to.
+    match /{path=**}/rooms/{roomId} {
+      allow list: if isSignedIn() && uid() in resource.data.players;
+    }
+
+    // -------------------------------------------------------------- players
+
+    function isValidPlayerFields(keys) {
+      let player = request.resource.data;
+      return keys.hasOnly(['id', 'name', 'selection', 'currentRoom', 'lastJoinedAt',
+                           'createdAt', 'preferences'])
+        && (!('id' in keys) || player.id == uid())
+        && (!('name' in keys) || (player.name is string && player.name.size() > 0 && player.name.size() <= 50))
+        && (!('selection' in keys) || player.selection == null || player.selection is number
+            || (player.selection is string && player.selection.size() <= 10))
+        && (!('currentRoom' in keys) || player.currentRoom == null || player.currentRoom is string)
+        && (!('lastJoinedAt' in keys) || player.lastJoinedAt is timestamp)
+        && (!('createdAt' in keys) || player.createdAt is timestamp)
+        && (!('preferences' in keys) || player.preferences is map);
+    }
+
+    // updatePlayers / togglePlayerRole clear other players' cards when a round
+    // resets. That is the only write allowed on someone else's player doc, and
+    // only by a member of the room that player is currently in.
+    function isClearingRoommateSelection() {
+      let room = resource.data.get('currentRoom', null);
+      return changedKeys().hasOnly(['selection'])
+        && request.resource.data.selection == null
+        && room is string
+        && uid() in get(/databases/$(database)/documents/rooms/$(room)).data.players;
+    }
+
+    match /players/{playerId} {
+      // Names and card selections are shown to everyone in a room.
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && playerId == uid()
+        && isValidPlayerFields(request.resource.data.keys());
+      allow update: if isSignedIn() && (
+        (playerId == uid() && isValidPlayerFields(changedKeys()))
+        || isClearingRoommateSelection()
+      );
+      // Deletion is done only by the cleanup service (Admin SDK).
+      allow delete: if false;
+    }
+  }
+}
