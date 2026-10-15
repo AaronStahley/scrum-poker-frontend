@@ -15,7 +15,7 @@ This is a Next.js 15 scrum poker application built with the App Router architect
 
 ### Core Technologies
 - Next.js 15 with App Router and Turbopack
-- TypeScript with strict configurationI
+- TypeScript with strict configuration
 - Firebase (Firestore + Auth) with anonymous and email authentication
 - TailwindCSS 4 + DaisyUI 5 for UI components
 - React 19 with Context API for state management
@@ -61,29 +61,21 @@ Firebase configuration requires these environment variables:
 ### Import Paths
 Uses TypeScript path mapping with `@/*` pointing to `./src/*` for clean imports.
 
-## Recent Multi-User Bug Fixes
+## Concurrency Patterns
 
-This application experienced critical race conditions and data corruption with multiple concurrent users. The following fixes have been implemented:
+Multiple players write to the same room at once, so keep these patterns in place:
 
-### Fixed Issues:
-1. **Race Condition in Player Data Fetching** - Fixed `usePlayersInRoom` hook that was overwriting player arrays when multiple chunks loaded simultaneously
-2. **Unsafe Concurrent Firebase Updates** - Replaced unsafe `forEach` async pattern with `Promise.all` in `updatePlayers` function
-3. **Missing User Validation** - Added strict validation that users can only update their own card selections
-4. **Optimistic Updates** - Implemented immediate UI feedback with server sync and rollback on failure
-5. **Debouncing** - Added 300ms debouncing to prevent Firebase spam from rapid user interactions
-6. **Error Handling** - Comprehensive error boundaries and user-friendly error messages
-
-### Testing
-- **Setup**: Vitest + React Testing Library + JSDOM environment
-- **Run Tests**: `npm test`, `npm run test:ui`, `npm run test:coverage`
-- **E2E Tests**: Requires Firebase emulator — run `npm run emulators` first, then `npm run test:e2e`
-- **E2E Test Files**: Located in `e2e/` directory; emulator must be running on ports 8080 (Firestore) and 9099 (Auth)
-- **Unit Test Files**: Located in `__tests__` directories and `src/test/`
-- **Coverage**: Unit tests for Firebase operations, integration tests for multi-user scenarios
-
-### Key Architecture Changes:
 - Player chunk aggregation uses Map-based merging to prevent data loss
 - All Firebase operations wrapped with error handling
 - Debounced card selections prevent concurrent update conflicts
 - Optimistic UI updates provide immediate feedback
 - Error boundaries catch and display runtime errors gracefully
+
+## Testing
+- **Setup**: Vitest + React Testing Library + JSDOM environment
+- **Run Tests**: `npm test`, `npm run test:ui`, `npm run test:coverage`
+- **Security Rules Tests**: `npm run test:rules` (starts its own Firestore emulator)
+- **E2E Tests**: Requires Firebase emulator — run `npm run emulators` first, then `npm run test:e2e`
+- **E2E Test Files**: Located in `e2e/` directory; emulator must be running on ports 8080 (Firestore) and 9099 (Auth)
+- **Unit Test Files**: Located in `__tests__` directories and `src/test/`
+- **Coverage**: Unit tests for Firebase operations, integration tests for multi-user scenarios

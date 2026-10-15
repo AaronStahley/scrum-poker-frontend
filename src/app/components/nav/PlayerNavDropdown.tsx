@@ -71,7 +71,6 @@ const PlayerNavDropdown = () => {
     handleLinkClick(); // Close dropdown first
     try {
       await signOut(auth);
-      console.log("User logged out");
     } catch (error) {
       console.error("Logout failed", error);
     }

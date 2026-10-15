@@ -84,10 +84,8 @@ const useJoinRoom = ({ autoJoinRoomId }: UseJoinRoomOptions = {}) => {
   }, [player, router, startTransition, setPendingRoomId, setPendingRole, waitMinDuration, autoJoinRoomId]);
 
   const joinRoom = useCallback(async (roomId: string): Promise<boolean> => {
-    console.log("Joining room:", roomId);
 
     if (!player || !player.displayName) {
-      console.log(!player ? "Player is not authenticated." : "Player does not have a display name.");
       setShowCreateNewPlayerModal(true);
       setPendingRoomId(roomId);
       return true;
