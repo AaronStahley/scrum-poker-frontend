@@ -41,7 +41,6 @@ export function usePlayersInRoom(roomId: string) {
         }
 
         const playerIds: string[] = roomSnap.data().players || [];
-        console.log('Updated Player IDs:', playerIds);
 
         if (playerIds.length === 0) {
           setPlayers([]);
@@ -93,7 +92,6 @@ export function usePlayersInRoom(roomId: string) {
             allPlayers.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
             
             setPlayers(allPlayers);
-            console.log("Updated Players:", allPlayers);
             
             // Only set loading to false after first chunk loads
             completedChunks++;
