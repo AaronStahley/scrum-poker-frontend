@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.7.3] - 2026-10-14
+
+### ✨ Improvements
+- Rooms and player data are now protected by Firestore security rules instead of the open test-mode rules. Room settings and deletion are host-only, players can only change their own cards and profile, player removal follows the room's permission setting, and the host can't be removed. These checks were previously enforced only in the browser
+- Added `npm run test:rules`, which runs the security rules test suite against the Firestore emulator
+
+### ⚡ Breaking Changes
+None — the rules allow everything the app does today, including opening a room from an invite link and creating a room before choosing a name.
+
+---
+
 ## [1.7.2] - 2026-07-27
 
 ### 🐛 Bug Fixes
