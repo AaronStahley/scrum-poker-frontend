@@ -108,4 +108,6 @@ For detailed version history, bug fixes, and feature additions, see [CHANGELOG.m
 
 ## License
 
-This project is private and proprietary.
+Copyright 2025–2026 Aaron Stahley. Licensed under the [Apache License 2.0](./LICENSE).
+
+The license covers the code only. It grants no rights to the "The Scrum Poker" name or logo.
