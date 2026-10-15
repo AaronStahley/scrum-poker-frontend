@@ -12,7 +12,7 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 15_000,
   },
-  // Skip the app's TailwindCSS v4 PostCSS config, as vitest.config.ts does
+  // Skip the app's TailwindCSS v4 PostCSS config, as vitest.config.mts does
   css: {
     postcss: {
       plugins: []
