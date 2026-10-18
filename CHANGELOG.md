@@ -17,6 +17,7 @@
 - Removed the unused `@react-oauth/google` package and moved `@testing-library/dom` to dev dependencies
 - Licensed under the Apache License 2.0. The license covers the code only, not "The Scrum Poker" name or logo
 - Added `.env.example` listing every environment variable the app reads, and updated the README with Realtime Database setup, the emulator, security rules and end-to-end test commands
+- Added a CI workflow (lint, unit tests, build and security rules tests on every pull request), weekly Dependabot updates, and a `SECURITY.md` explaining how to report vulnerabilities
 
 ### ⚡ Breaking Changes
 None for players. Requires deploying the updated Firestore and Realtime Database rules after this version is live. Local setups need `npm install` to pick up the upgraded and removed packages.
