@@ -2,6 +2,14 @@
 
 ## [1.7.4] - 2026-10-18
 
+### 🔒 Security
+- Player names and the room each player is in are now visible only to members of that room. Before, any signed-in visitor could list every player and find every active room
+- Presence data (online/idle indicators) is limited to its expected fields, so it can no longer be used to store arbitrary data
+- Added security headers that stop the app being embedded in other sites (clickjacking) and tighten referrer and browser-permission defaults
+
+### 🐛 Bug Fixes
+- Fixed the player list not stopping its old listeners when a room's player list emptied
+
 ### ✨ Improvements
 - Upgraded Next.js from 15.2.8 to 15.5.28, which fixes the critical and high-severity advisories in the framework and its `postcss` dependency. Production dependency issues drop from 67 to 16, with no critical ones left
 - Upgraded the test tooling to Vitest 4 and `@vitejs/plugin-react` 6
@@ -11,7 +19,7 @@
 - Added `.env.example` listing every environment variable the app reads, and updated the README with Realtime Database setup, the emulator, security rules and end-to-end test commands
 
 ### ⚡ Breaking Changes
-None — no changes to app behavior. Local setups need `npm install` to pick up the upgraded and removed packages.
+None for players. Requires deploying the updated Firestore and Realtime Database rules after this version is live. Local setups need `npm install` to pick up the upgraded and removed packages.
 
 ---
 
