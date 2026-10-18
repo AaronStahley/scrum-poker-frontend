@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.8.0] - 2026-10-18
+## [1.7.4] - 2026-10-18
 
 ### ✨ Improvements
 - Upgraded Next.js from 15.2.8 to 15.5.28, which fixes the critical and high-severity advisories in the framework and its `postcss` dependency. Production dependency issues drop from 67 to 16, with no critical ones left
