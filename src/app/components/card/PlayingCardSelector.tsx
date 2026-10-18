@@ -30,7 +30,6 @@ const PlayingCardSelector: React.FC<PlayingCardSelectorProps> = ({ playerId, onS
 
   useEffect(() => {
     if (reset) {
-      console.log("resetting card selector");
       setSelectedValue(null);
     }
   }, [reset]);

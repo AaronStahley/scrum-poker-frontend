@@ -5,123 +5,114 @@ import {
   query,
   where,
   onSnapshot,
+  QueryDocumentSnapshot,
+  DocumentData,
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
 import { toDate } from '@/lib/firebase/timestamps';
 import { Player } from '@/types/player';
 
-function chunkArray(array: string[], size: number) {
-  return Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
-    array.slice(i * size, i * size + size)
-  );
-}
-
-export function usePlayersInRoom(roomId: string) {
+// Player docs are only readable by room members (firestore.rules), so the query
+// filters on currentRoom and starts only once currentUserId is in the room.
+// Membership counts only once the server has confirmed it: our own join shows up
+// locally first, and querying before it's saved gets the listener rejected.
+// `removed` turns true when currentUserId was a member and no longer is.
+export function usePlayersInRoom(roomId: string, currentUserId?: string) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [removed, setRemoved] = useState(false);
 
   useEffect(() => {
     if (!roomId) return;
 
     setLoading(true);
-    let roomUnsubscribe: Unsubscribe | null = null;
-    let playerUnsubscribes: Unsubscribe[] = [];
+    setRemoved(false);
+    let wasMember = false;
+    let playersUnsubscribe: Unsubscribe | null = null;
+    let roomPlayerIds = new Set<string>();
+    let playerDocs: QueryDocumentSnapshot<DocumentData>[] = [];
 
-    const listenToRoom = () => {
-      const roomRef = doc(db, 'rooms', roomId);
+    // Players in the room's list whose own doc also points at this room
+    const publishPlayers = () => {
+      const roomPlayers = playerDocs
+        .filter((playerDoc) => roomPlayerIds.has(playerDoc.id))
+        .map((playerDoc): Player => {
+          const data = playerDoc.data();
+          return {
+            ...(data as Player),
+            id: playerDoc.id,
+            lastJoinedAt: toDate(data.lastJoinedAt),
+            createdAt: toDate(data.createdAt),
+          };
+        });
 
-      roomUnsubscribe = onSnapshot(roomRef, (roomSnap) => {
-        if (!roomSnap.exists()) {
-          setError(new Error('Room does not exist'));
-          setPlayers([]);
-          setLoading(false);
-          return;
-        }
+      // Sort players by name for consistent ordering
+      roomPlayers.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+      setPlayers(roomPlayers);
+    };
 
-        const playerIds: string[] = roomSnap.data().players || [];
-        console.log('Updated Player IDs:', playerIds);
+    const stopPlayersListener = () => {
+      if (playersUnsubscribe) playersUnsubscribe();
+      playersUnsubscribe = null;
+      playerDocs = [];
+    };
 
-        if (playerIds.length === 0) {
-          setPlayers([]);
-          setLoading(false);
-          return;
-        }
-
-        // Cleanup previous player listeners
-        playerUnsubscribes.forEach((unsub) => unsub());
-        playerUnsubscribes = [];
-
-        // Use a Map to aggregate players from all chunks
-        const playersMap = new Map<string, Player>();
-        const chunks = chunkArray(playerIds, 10);
-        let completedChunks = 0;
-
-        for (const chunk of chunks) {
-          const q = query(
-            collection(db, 'players'),
-            where('__name__', 'in', chunk),
-            where('currentRoom', '==', roomId)
-          );
-          
-          const unsubscribe = onSnapshot(q, (snapshot) => {
-            // Update the map with players from this chunk
-            snapshot.docs.forEach((doc) => {
-              const data = doc.data();
-              const playerData: Player = {
-                ...(data as Player),
-                id: doc.id,
-                lastJoinedAt: toDate(data.lastJoinedAt),
-                createdAt: toDate(data.createdAt),
-              };
-              playersMap.set(doc.id, playerData);
-            });
-
-            // Remove any players not in this snapshot (they left/were removed)
-            const currentChunkIds = new Set(snapshot.docs.map(doc => doc.id));
-            for (const [playerId] of playersMap) {
-              if (chunk.includes(playerId) && !currentChunkIds.has(playerId)) {
-                playersMap.delete(playerId);
-              }
-            }
-
-            // Convert map to array and update state
-            const allPlayers = Array.from(playersMap.values());
-            
-            // Sort players by name for consistent ordering
-            allPlayers.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
-            
-            setPlayers(allPlayers);
-            console.log("Updated Players:", allPlayers);
-            
-            // Only set loading to false after first chunk loads
-            completedChunks++;
-            if (completedChunks === 1) {
-              setLoading(false);
-            }
-          }, (error) => {
-            console.error('Error fetching players chunk:', error);
-            setError(error);
-            setLoading(false);
-          });
-
-          playerUnsubscribes.push(unsubscribe);
-        }
+    const startPlayersListener = () => {
+      const q = query(collection(db, 'players'), where('currentRoom', '==', roomId));
+      playersUnsubscribe = onSnapshot(q, (snapshot) => {
+        setError(null);
+        playerDocs = snapshot.docs;
+        publishPlayers();
+        setLoading(false);
       }, (error) => {
-        console.error('Error fetching room:', error);
+        console.error('Error fetching players:', error);
         setError(error);
         setLoading(false);
       });
     };
 
-    listenToRoom();
+    const roomUnsubscribe = onSnapshot(doc(db, 'rooms', roomId), { includeMetadataChanges: true }, (roomSnap) => {
+      if (roomSnap.metadata.hasPendingWrites) return;
+
+      if (!roomSnap.exists()) {
+        stopPlayersListener();
+        setError(new Error('Room does not exist'));
+        setPlayers([]);
+        setLoading(false);
+        return;
+      }
+
+      roomPlayerIds = new Set<string>(roomSnap.data().players || []);
+      const isMember = !!currentUserId && roomPlayerIds.has(currentUserId);
+
+      if (!isMember) {
+        if (wasMember) setRemoved(true);
+        stopPlayersListener();
+        setPlayers([]);
+        setLoading(false);
+        return;
+      }
+
+      wasMember = true;
+      if (playersUnsubscribe) {
+        // Already listening; the room's player list may have changed
+        publishPlayers();
+      } else {
+        startPlayersListener();
+      }
+    }, (error) => {
+      console.error('Error fetching room:', error);
+      setError(error);
+      setLoading(false);
+    });
 
     return () => {
-      if (roomUnsubscribe) roomUnsubscribe();
-      playerUnsubscribes.forEach((unsub) => unsub());
+      roomUnsubscribe();
+      stopPlayersListener();
     };
-  }, [roomId]);
+  }, [roomId, currentUserId]);
 
-  return { players, loading, error };
+  return { players, loading, error, removed };
 }

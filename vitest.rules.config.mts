@@ -1,7 +1,7 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config'
 
-// Firestore security rules tests. They need the Firestore emulator, so they
+// Firestore and Realtime Database security rules tests. They need the emulators, so they
 // run separately from the unit suite via `npm run test:rules`.
 export default defineConfig({
   test: {
@@ -12,7 +12,7 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 15_000,
   },
-  // Skip the app's TailwindCSS v4 PostCSS config, as vitest.config.ts does
+  // Skip the app's TailwindCSS v4 PostCSS config, as vitest.config.mts does
   css: {
     postcss: {
       plugins: []

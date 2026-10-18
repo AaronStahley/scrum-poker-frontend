@@ -30,7 +30,7 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   const { error, clearError, withErrorHandling } = useErrorHandler();
   
   const { showRoleModal, confirmRole, loadingRoom, error: joinError } = useJoinRoom({autoJoinRoomId: roomId});
-  const { players } = usePlayersInRoom(roomId);
+  const { players, removed } = usePlayersInRoom(roomId, playerAuth?.uid);
   const { room, loading: roomLoading, error: roomError } = useCurrentRoom(roomId);
   usePresenceBeacon(playerAuth?.uid);
   const presence = usePlayersPresence(players.map(p => p.id));
@@ -136,17 +136,12 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   // Handle player removal - redirect when current player is no longer in room
   // Guard against firing while a join is in progress (role modal showing or loading)
   useEffect(() => {
-    if (showRoleModal || loadingRoom) return;
-    if (playerAuth?.uid && players.length > 0) {
-      const isCurrentPlayerInRoom = players.some(player => player.id === playerAuth.uid);
-      if (!isCurrentPlayerInRoom) {
-        const timer = setTimeout(() => {
-          router.push('/?message=player-removed');
-        }, 1500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [players, playerAuth?.uid, router, showRoleModal, loadingRoom]);
+    if (showRoleModal || loadingRoom || !removed) return;
+    const timer = setTimeout(() => {
+      router.push('/?message=player-removed');
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [removed, router, showRoleModal, loadingRoom]);
 
   useEffect(() => {
     if (players.every(player => player.selection === null)) {
@@ -179,24 +174,21 @@ const RoomClient = ({ roomId }: { roomId: string }) => {
   }
 
   // Show message when player was removed (not while a join is in progress)
-  if (!showRoleModal && !loadingRoom && playerAuth?.uid && players.length > 0) {
-    const isCurrentPlayerInRoom = players.some(player => player.id === playerAuth.uid);
-    if (!isCurrentPlayerInRoom) {
-      return (
-        <div className="flex flex-col items-center justify-center p-8">
-          <div className="alert alert-info max-w-md mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <div>
-              <h3 className="font-bold">You have been removed from the room</h3>
-              <div className="text-xs">Redirecting to home page...</div>
-            </div>
+  if (!showRoleModal && !loadingRoom && removed) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="alert alert-info max-w-md mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <h3 className="font-bold">You have been removed from the room</h3>
+            <div className="text-xs">Redirecting to home page...</div>
           </div>
-          <div className="loading loading-dots loading-lg"></div>
         </div>
-      );
-    }
+        <div className="loading loading-dots loading-lg"></div>
+      </div>
+    );
   }
 
   return (

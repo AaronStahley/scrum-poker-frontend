@@ -15,8 +15,8 @@ This is a Next.js 15 scrum poker application built with the App Router architect
 
 ### Core Technologies
 - Next.js 15 with App Router and Turbopack
-- TypeScript with strict configurationI
-- Firebase (Firestore + Auth) with anonymous and email authentication
+- TypeScript with strict configuration
+- Firebase Firestore (rooms, players), Realtime Database (presence) and Auth (anonymous and email/password)
 - TailwindCSS 4 + DaisyUI 5 for UI components
 - React 19 with Context API for state management
 
@@ -45,45 +45,36 @@ This is a Next.js 15 scrum poker application built with the App Router architect
 - Component-level state for UI interactions
 
 **Styling:**
-- DaisyUI components with "business" theme
+- DaisyUI themes chosen per player (light/dark/system), defaults in `src/app/constants/themes.ts`
 - Tailwind utility classes for custom styling
 - Global styles in `src/app/globals.css`
 
 ### Environment Variables
-Firebase configuration requires these environment variables:
-- `NEXT_PUBLIC_FIREBASE_API_KEY`
-- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-- `NEXT_PUBLIC_FIREBASE_APP_ID`
+`.env.example` lists every variable the app reads. Copy it to `.env.local` for local development.
+
+### Security Rules
+- `firestore.rules`: every permission the UI enforces must also be enforced here, since clients can call Firestore directly. Player docs are readable only by roommates, so player queries must filter on `currentRoom`.
+- `database.rules.json`: presence entries, writable only by their owner and limited to `{online, lastChanged}`.
+- Any rules change needs tests in `rules-tests/` and a deploy: `npx firebase deploy --only firestore:rules,database --project <project-id>`.
 
 ### Import Paths
 Uses TypeScript path mapping with `@/*` pointing to `./src/*` for clean imports.
 
-## Recent Multi-User Bug Fixes
+## Concurrency Patterns
 
-This application experienced critical race conditions and data corruption with multiple concurrent users. The following fixes have been implemented:
+Multiple players write to the same room at once, so keep these patterns in place:
 
-### Fixed Issues:
-1. **Race Condition in Player Data Fetching** - Fixed `usePlayersInRoom` hook that was overwriting player arrays when multiple chunks loaded simultaneously
-2. **Unsafe Concurrent Firebase Updates** - Replaced unsafe `forEach` async pattern with `Promise.all` in `updatePlayers` function
-3. **Missing User Validation** - Added strict validation that users can only update their own card selections
-4. **Optimistic Updates** - Implemented immediate UI feedback with server sync and rollback on failure
-5. **Debouncing** - Added 300ms debouncing to prevent Firebase spam from rapid user interactions
-6. **Error Handling** - Comprehensive error boundaries and user-friendly error messages
-
-### Testing
-- **Setup**: Vitest + React Testing Library + JSDOM environment
-- **Run Tests**: `npm test`, `npm run test:ui`, `npm run test:coverage`
-- **E2E Tests**: Requires Firebase emulator — run `npm run emulators` first, then `npm run test:e2e`
-- **E2E Test Files**: Located in `e2e/` directory; emulator must be running on ports 8080 (Firestore) and 9099 (Auth)
-- **Unit Test Files**: Located in `__tests__` directories and `src/test/`
-- **Coverage**: Unit tests for Firebase operations, integration tests for multi-user scenarios
-
-### Key Architecture Changes:
-- Player chunk aggregation uses Map-based merging to prevent data loss
+- `usePlayersInRoom` queries players by `currentRoom` and starts only once the server confirms the user's membership (see the comment in the hook)
 - All Firebase operations wrapped with error handling
 - Debounced card selections prevent concurrent update conflicts
 - Optimistic UI updates provide immediate feedback
 - Error boundaries catch and display runtime errors gracefully
+
+## Testing
+- **Setup**: Vitest + React Testing Library + JSDOM environment
+- **Run Tests**: `npm test`, `npm run test:ui`, `npm run test:coverage`
+- **Security Rules Tests**: `npm run test:rules` (starts its own Firestore and Realtime Database emulators)
+- **E2E Tests**: Requires Firebase emulator — run `npm run emulators` first, then `npm run test:e2e`
+- **E2E Test Files**: Located in `e2e/` directory; emulator must be running on ports 8080 (Firestore), 9099 (Auth) and 9000 (Realtime Database)
+- **Unit Test Files**: Located in `__tests__` directories and `src/test/`
+- **Coverage**: Unit tests for Firebase operations, integration tests for multi-user scenarios

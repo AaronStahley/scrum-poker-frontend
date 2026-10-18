@@ -68,8 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     try {
       setLoading(true);
-      const linkedUser = await linkWithCredential(player, credential);
-      console.log("User upgraded successfully:", linkedUser);
+      await linkWithCredential(player, credential);
       await auth.currentUser?.reload();
     } catch (err: unknown) {
       const errorMessage = firebaseErrorMessages[(err as { code: string }).code] || "Failed to upgrade user";

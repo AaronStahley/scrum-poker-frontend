@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+# The jobs only read the checkout. Keeping the token read-only means dependency
+# install scripts run by `npm ci` can't push commits or edit releases.
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npx vitest run
+
+      - run: npm run build
+        env:
+          # NEXT_PUBLIC_* values are shipped to the browser in a real deploy, so
+          # they aren't secrets; the build only needs them to be set.
+          NEXT_PUBLIC_FIREBASE_API_KEY: ci
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ci
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ci
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ci
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ci
+          NEXT_PUBLIC_FIREBASE_APP_ID: ci
+
+  # Security rules tests run against the Firebase emulators, which need Java.
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci
+
+      - run: npm run test:rules

@@ -44,7 +44,6 @@ export const createRoom = async (
         lastActivity: serverTimestamp(),
     });
 
-    console.log(`Room created with ID: ${roomRef.id}`);
     return roomRef.id;
 };
 
@@ -102,12 +101,10 @@ export const addPlayerToRoom = async (roomId: string, playerId: string, role: 'p
     const isPlayerInRoom = playersInRoom.some((p: string) => p === playerId);
     
     if (isPlayerInRoom) {
-        console.log("Player already in room:", playerId);
         await touchRoom(roomId);
         return;
     }
 
-    console.log("Adding player to room:", roomId, playerId);
 
     if (role === 'spectator') {
         await updateDoc(roomRef, {
@@ -138,7 +135,6 @@ export const removePlayerFromRoom = async (roomId: string, playerId: string, cur
     const playersInRoom = roomData.players || [];
     const isPlayerInRoom = playersInRoom.some((p: string) => p === playerId);
     if (!isPlayerInRoom) {
-        console.log("Player not in room:", playerId);
         return;
     }
 

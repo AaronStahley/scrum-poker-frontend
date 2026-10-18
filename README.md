@@ -19,7 +19,7 @@ Scrum Poker (also known as Planning Poker) is an agile estimation technique wher
 
 - **Frontend**: Next.js 15 with App Router and Turbopack
 - **Language**: TypeScript with strict configuration
-- **Database**: Firebase Firestore for real-time data synchronization
+- **Database**: Firebase Firestore for real-time data synchronization, plus the Realtime Database for player presence
 - **Authentication**: Firebase Auth with anonymous and email/password support
 - **Styling**: TailwindCSS 4 + DaisyUI 5 component library
 - **Testing**: Vitest + React Testing Library
@@ -29,15 +29,15 @@ Scrum Poker (also known as Planning Poker) is an agile estimation technique wher
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 20+
 - npm or yarn
-- Firebase project with Firestore and Authentication enabled
+- A Firebase project with Authentication, Firestore and the Realtime Database enabled
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/AaronStahley/scrum-poker-frontend.git
 cd scrum-poker-frontend
 ```
 
@@ -46,15 +46,12 @@ cd scrum-poker-frontend
 npm install
 ```
 
-3. Create a `.env.local` file with your Firebase configuration:
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+3. Create a `.env.local` file from the example and fill in your Firebase configuration:
+```bash
+cp .env.example .env.local
 ```
+
+   Your Firebase project needs Authentication (Anonymous and Email/Password providers), Firestore and the Realtime Database enabled. The Realtime Database powers the online/idle presence indicators.
 
 4. Start the development server:
 ```bash
@@ -74,6 +71,9 @@ npm run dev
 - `npm test` - Run unit tests
 - `npm run test:ui` - Run tests with UI interface
 - `npm run test:coverage` - Run tests with coverage report
+- `npm run test:rules` - Run the Firestore and Realtime Database security rules tests against the emulators
+- `npm run emulators` - Start the Firebase Auth, Firestore and Realtime Database emulators
+- `npm run test:e2e` - Run the Playwright end-to-end tests (start the emulators first)
 
 ### Architecture Overview
 
@@ -91,6 +91,20 @@ The project uses Vitest with React Testing Library for comprehensive testing:
 - Integration tests for multi-user scenarios  
 - Error boundary testing for robust error handling
 - Coverage reports available via `npm run test:coverage`
+- Security rules tests (`rules-tests/`) run against the Firestore and Realtime Database emulators
+- Playwright end-to-end tests (`e2e/`) run against the Auth, Firestore and Realtime Database emulators
+
+### Security Rules
+
+Access rules live in `firestore.rules` (Firestore) and `database.rules.json` (Realtime Database presence), and are tested by `npm run test:rules`. Deploy changes with:
+
+```bash
+npx firebase deploy --only firestore:rules,database --project <your-project-id>
+```
+
+## Related Repositories
+
+- [scrum-poker-cleanup](https://github.com/AaronStahley/scrum-poker-cleanup): scheduled Cloud Function that deletes stale rooms, players and anonymous users.
 
 ## Changes & Updates
 
@@ -108,4 +122,6 @@ For detailed version history, bug fixes, and feature additions, see [CHANGELOG.m
 
 ## License
 
-This project is private and proprietary.
+Copyright 2025–2026 Aaron Stahley. Licensed under the [Apache License 2.0](./LICENSE).
+
+The license covers the code only. It grants no rights to the "The Scrum Poker" name or logo.

@@ -52,7 +52,6 @@ export const createPlayer = async (playerId: string, playerName: string) => {
     const playerRef = doc(db, 'players', playerId);
     await setDoc(playerRef, newPlayer);
 
-    console.log(`Player created with ID: ${playerRef.id}`);
     return playerRef.id;
 };
 
@@ -71,7 +70,6 @@ export const updatePlayers = async (roomId: string, playerData: Partial<Player>)
     // Use Promise.all to ensure all updates complete before resolving
     // This prevents race conditions from concurrent calls
     const updatePromises = querySnap.docs.map(async (doc) => {
-        console.log("Updating player:", doc.id, playerData);
         return updateDoc(doc.ref, playerData);
     });
 
