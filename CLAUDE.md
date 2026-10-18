@@ -64,7 +64,7 @@ Uses TypeScript path mapping with `@/*` pointing to `./src/*` for clean imports.
 
 Multiple players write to the same room at once, so keep these patterns in place:
 
-- Player chunk aggregation uses Map-based merging to prevent data loss
+- `usePlayersInRoom` queries players by `currentRoom` and starts only once the server confirms the user's membership (see the comment in the hook)
 - All Firebase operations wrapped with error handling
 - Debounced card selections prevent concurrent update conflicts
 - Optimistic UI updates provide immediate feedback
