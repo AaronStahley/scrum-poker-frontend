@@ -71,7 +71,7 @@ npm run dev
 - `npm test` - Run unit tests
 - `npm run test:ui` - Run tests with UI interface
 - `npm run test:coverage` - Run tests with coverage report
-- `npm run test:rules` - Run the Firestore security rules tests against the emulator
+- `npm run test:rules` - Run the Firestore and Realtime Database security rules tests against the emulators
 - `npm run emulators` - Start the Firebase Auth, Firestore and Realtime Database emulators
 - `npm run test:e2e` - Run the Playwright end-to-end tests (start the emulators first)
 
@@ -91,15 +91,15 @@ The project uses Vitest with React Testing Library for comprehensive testing:
 - Integration tests for multi-user scenarios  
 - Error boundary testing for robust error handling
 - Coverage reports available via `npm run test:coverage`
-- Firestore security rules tests (`rules-tests/`) run against the Firestore emulator
+- Security rules tests (`rules-tests/`) run against the Firestore and Realtime Database emulators
 - Playwright end-to-end tests (`e2e/`) run against the Auth, Firestore and Realtime Database emulators
 
-### Firestore Security Rules
+### Security Rules
 
-Access rules live in `firestore.rules` and are tested by `npm run test:rules`. Deploy changes with:
+Access rules live in `firestore.rules` (Firestore) and `database.rules.json` (Realtime Database presence), and are tested by `npm run test:rules`. Deploy changes with:
 
 ```bash
-npx firebase deploy --only firestore:rules --project <your-project-id>
+npx firebase deploy --only firestore:rules,database --project <your-project-id>
 ```
 
 ## Related Repositories

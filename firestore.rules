@@ -205,9 +205,23 @@ service cloud.firestore {
         && uid() in get(/databases/$(database)/documents/rooms/$(room)).data.players;
     }
 
+    // Readers can see players in a room they belong to. Room IDs work as invite
+    // links, so letting any signed-in user read every player would expose each
+    // player's currentRoom and with it every active room.
+    function isRoommate() {
+      let room = resource.data.get('currentRoom', null);
+      return room is string
+        && uid() in get(/databases/$(database)/documents/rooms/$(room)).data.players;
+    }
+
     match /players/{playerId} {
-      // Names and card selections are shown to everyone in a room.
-      allow read: if isSignedIn();
+      // Your own doc, or the doc of someone in a room you're a member of.
+      allow get: if isSignedIn() && (playerId == uid() || isRoommate());
+      // Room queries must filter on currentRoom (usePlayersInRoom, updatePlayers)
+      // so the rule can check membership of that room. Avoid document-ID ("in")
+      // queries: they're checked against every listed doc, so one player who has
+      // moved to another room fails the whole query.
+      allow list: if isSignedIn() && isRoommate();
       allow create: if isSignedIn()
         && playerId == uid()
         && isValidPlayerFields(request.resource.data.keys());

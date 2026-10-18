@@ -353,18 +353,56 @@ describe('players', () => {
     },
   }));
 
-  it('lets signed-in users read players', async () => {
+  it('lets you read your own player doc, even before it exists', async () => {
+    await assertSucceeds(getDoc(playerRef(ALICE, ALICE)));
+    await assertSucceeds(getDoc(playerRef(HOST, HOST)));
+  });
+
+  it('lets room members read the players in their room', async () => {
     await assertSucceeds(getDoc(playerRef(ALICE, BOB)));
+    await assertSucceeds(getDoc(playerRef(HOST, ALICE)));
+  });
+
+  it('denies reading players when signed out', async () => {
     await assertFails(getDoc(playerRef(undefined, BOB)));
   });
 
-  it('allows the players-in-room query', async () => {
-    const q = query(
-      collection(db(ALICE), 'players'),
-      where('__name__', 'in', [ALICE, BOB]),
-      where('currentRoom', '==', ROOM),
-    );
+  it("denies reading players in a room you're not a member of", async () => {
+    await assertFails(getDoc(playerRef(OUTSIDER, ALICE)));
+    await assertFails(getDoc(playerRef(ALICE, OUTSIDER)));
+  });
+
+  it('denies reading another player who is not in a room', async () => {
+    await seed({ players: { [BOB]: basePlayer(BOB, { currentRoom: null }) } });
+    await assertFails(getDoc(playerRef(ALICE, BOB)));
+  });
+
+  it('allows the players-in-room query (usePlayersInRoom, updatePlayers)', async () => {
+    const q = query(collection(db(ALICE), 'players'), where('currentRoom', '==', ROOM));
     await assertSucceeds(getDocs(q));
+  });
+
+  it('allows the players-in-room query when a listed player has moved to another room', async () => {
+    // BOB is still in this room's players array but now points at another room.
+    // The currentRoom query is allowed from its filter alone, so BOB doesn't fail it.
+    await seed({ players: { [BOB]: basePlayer(BOB, { currentRoom: 'other-room' }) } });
+    const q = query(collection(db(ALICE), 'players'), where('currentRoom', '==', ROOM));
+    await assertSucceeds(getDocs(q));
+  });
+
+  it("denies querying players in a room you're not a member of", async () => {
+    const q = query(collection(db(OUTSIDER), 'players'), where('currentRoom', '==', ROOM));
+    await assertFails(getDocs(q));
+  });
+
+  it('denies listing all players', async () => {
+    await assertFails(getDocs(collection(db(ALICE), 'players')));
+  });
+
+  it('denies a player-ID query that includes someone outside your room', async () => {
+    // Document-ID queries are checked against each document, so the outsider's
+    // doc fails it. This is why usePlayersInRoom queries by currentRoom instead.
+    await assertFails(getDocs(query(collection(db(ALICE), 'players'), where('__name__', 'in', [BOB, OUTSIDER]))));
   });
 
   it('allows creating your own player doc (createPlayer)', async () => {

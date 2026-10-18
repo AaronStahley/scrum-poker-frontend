@@ -1,7 +1,7 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config'
 
-// Firestore security rules tests. They need the Firestore emulator, so they
+// Firestore and Realtime Database security rules tests. They need the emulators, so they
 // run separately from the unit suite via `npm run test:rules`.
 export default defineConfig({
   test: {

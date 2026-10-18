@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-scrum-poker-rules \"vitest run --config vitest.rules.config.mts\"",
+    "test:rules": "firebase emulators:exec --only firestore,database --project demo-scrum-poker-rules \"vitest run --config vitest.rules.config.mts\"",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
